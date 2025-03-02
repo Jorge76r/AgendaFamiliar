@@ -19,7 +19,6 @@ export default function Layout({ user, onLogout }: LayoutProps) {
   const [tasks, setTasks] = useState([
     { id: '1', title: 'Tarea 1', description: 'Descripción de la tarea 1' },
     { id: '2', title: 'Tarea 2', description: 'Descripción de la tarea 2' },
-    
   ]);
 
   const handleAddTask = (title: string, description: string) => {
@@ -59,7 +58,7 @@ export default function Layout({ user, onLogout }: LayoutProps) {
         tabBarItemStyle: {
           flex: 1,
         },
-        headerShown: true, // Asegura de que el header se muestre
+        headerShown: true,
       })}
     >
       <Tab.Screen
