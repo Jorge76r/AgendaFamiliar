@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { useRouter, Stack } from 'expo-router';
-import Layout from './(tabs)/_layout'; 
-import LoginScreen from './(protected)/login'; 
+import Layout from './(tabs)/_layout'; // Asegúrate de que la ruta sea correcta
+import LoginScreen from './(protected)/login';
 
+// Definimos la interfaz para el usuario
 interface User {
   email: string;
   password: string;
@@ -11,7 +11,6 @@ interface User {
 
 export default function Index() {
   const [user, setUser] = useState<User | null>(null);
-  const router = useRouter();
 
   const handleLogin = (email: string, password: string) => {
     setUser({ email, password });
@@ -22,9 +21,9 @@ export default function Index() {
   };
 
   return (
-    <Stack>
+    <View style={styles.container}>
       {user ? <Layout user={user} onLogout={handleLogout} /> : <LoginScreen onLogin={handleLogin} />}
-    </Stack>
+    </View>
   );
 }
 
