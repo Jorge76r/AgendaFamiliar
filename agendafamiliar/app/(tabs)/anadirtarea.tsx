@@ -46,17 +46,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    paddingBottom: 60,
+    paddingBottom: 60, // Añadir un padding inferior para dejar espacio para la barra de navegación
     backgroundColor: '#F5F7FA',
   },
   perfil: {
-    width: 150,
-    height: 150,
-    marginBottom: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: 'gray',
-    alignSelf: 'center',
+    width: 150, // Ajusta el ancho del rectángulo
+    height: 150, // Ajusta la altura del rectángulo
+    marginBottom: 20,//Margen inferior para no estar pegados
+    borderRadius: 10, // Redondea los bordes de la imagen
+    borderWidth: 2, // Añade un borde a la imagen
+    borderColor: 'gray', // Color del borde
+    alignSelf: 'center', // Centrar la imagen horizontalmente
   },
   input: {
     height: 40,
