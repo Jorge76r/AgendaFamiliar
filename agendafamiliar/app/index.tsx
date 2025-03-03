@@ -1,35 +1,26 @@
-import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
-import { useRouter, Stack } from 'expo-router';
-import Layout from './(tabs)/_layout'; 
-import LoginScreen from './(protected)/login'; 
-
-interface User {
-  email: string;
-  password: string;
-}
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import { View, Text } from "react-native";
 
 export default function Index() {
-  const [user, setUser] = useState<User | null>(null);
-  const router = useRouter();
+    const router = useRouter();
+    const { user } = useAuth();
+    const [isMounted, setIsMounted] = useState(false);
 
-  const handleLogin = (email: string, password: string) => {
-    setUser({ email, password });
-  };
+    useEffect(() => {
+        setIsMounted(true);
+    }, [])
 
-  const handleLogout = () => {
-    setUser(null);
-  };
+    useEffect(() => {
+        if (isMounted) {
+            router.replace(user ? '/home' : '/login');
+        }
+    }, [isMounted])
 
-  return (
-    <Stack>
-      {user ? <Layout user={user} onLogout={handleLogout} /> : <LoginScreen onLogin={handleLogin} />}
-    </Stack>
-  );
+    return (
+        <View>
+            <Text>Usuario: {user ? user.email : 'No autenticado'}</Text>
+        </View>
+    );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
