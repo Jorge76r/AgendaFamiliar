@@ -1,26 +1,39 @@
-import { useAuth } from "@/contexts/AuthContext";
-import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
-import { View, Text } from "react-native";
+import React, { useState } from 'react';
+import { View, StyleSheet } from 'react-native';
+import { ThemeProvider } from "@/contexts/ThemeContext";  // Importar ThemeProvider
+import { LanguageProvider } from "@/contexts/LanguageContext";  // Importar LanguageProvider
+import Layout from './(tabs)/_layout';
+import LoginScreen from './(protected)/login';
+
+interface User {
+  email: string;
+  password: string;
+}
 
 export default function Index() {
-    const router = useRouter();
-    const { user } = useAuth();
-    const [isMounted, setIsMounted] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
 
-    useEffect(() => {
-        setIsMounted(true);
-    }, [])
+  const handleLogin = (email: string, password: string) => {
+    setUser({ email, password });
+  };
 
-    useEffect(() => {
-        if (isMounted) {
-            router.replace(user ? '/home' : '/login');
-        }
-    }, [isMounted])
+  const handleLogout = () => {
+    setUser(null);
+  };
 
-    return (
-        <View>
-            <Text>Usuario: {user ? user.email : 'No autenticado'}</Text>
+  return (
+    <ThemeProvider>  
+      <LanguageProvider>  
+        <View style={styles.container}>
+          {user ? <Layout user={user} onLogout={handleLogout} /> : <LoginScreen onLogin={handleLogin} />}
         </View>
-    );
+      </LanguageProvider>
+    </ThemeProvider>
+  );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});

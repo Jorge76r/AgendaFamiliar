@@ -1,7 +1,7 @@
-import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { useTheme } from "../contexts/ThemeContext";
-import { useLanguage } from "../contexts/LanguageContext";
+import React from 'react';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { useTheme } from "@/contexts/ThemeContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { darkTheme, lightTheme } from "@/styles/themes";
 
 export default function SettingsScreen() {
@@ -11,19 +11,23 @@ export default function SettingsScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>
-        Modo Actual: {theme === "dark" ? "Oscuro" : "Claro"}
+      <Text style={styles.title}>
+        {language === "es" ? "Configuraciones" : "Settings"}
       </Text>
-      <TouchableOpacity style={styles.button} onPress={toggleTheme}>
-        <Text style={styles.buttonText}>Cambiar Tema</Text>
-      </TouchableOpacity>
-      
-      <Text style={styles.text}>
-        Idioma Actual: {language === "es" ? "Español" : "Inglés"}
-      </Text>
-      <TouchableOpacity style={styles.button} onPress={toggleLanguage}>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={toggleTheme}
+      >
         <Text style={styles.buttonText}>
-          {language === "es" ? "Switch to English" : "Cambiar a Español"}
+          {language === "es" ? "Cambiar Tema" : "Toggle Theme"}
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={toggleLanguage}
+      >
+        <Text style={styles.buttonText}>
+          {language === "es" ? "Cambiar Idioma" : "Toggle Language"}
         </Text>
       </TouchableOpacity>
     </View>

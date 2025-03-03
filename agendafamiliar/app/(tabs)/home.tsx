@@ -1,25 +1,37 @@
 import React from 'react';
-import { View, Text, Button, StyleSheet } from 'react-native';
+import { View, Text, FlatList, StyleSheet, Button, Image } from 'react-native';
+import TaskCard from '../../components/TaskCard';
 
-interface HomeScreenProps {
-  user: { email: string; password: string };
-  onLogout: () => void;
-  tasks: Array<{ title: string; description: string }>;
+// Definimos la interfaz para el usuario
+interface User {
+  email: string;
+  password: string;
 }
 
-export default function Home({ user, onLogout, tasks }: HomeScreenProps) {
+interface Task {
+  id: string;
+  title: string;
+  description: string;
+}
+
+interface HomeScreenProps {
+  user: User;
+  onLogout: () => void;
+  tasks: Task[];
+}
+
+export default function HomeScreen({ user, onLogout, tasks }: HomeScreenProps) {
   return (
     <View style={styles.container}>
+      <Image source={require('../../assets/images/home.png')} style={styles.perfil} />
       <Text style={styles.text}>Bienvenido, {user.email}</Text>
-      <Button title="Logout" onPress={onLogout} />
-      <View style={styles.tasksContainer}>
-        {tasks.map((task, index) => (
-          <View key={index} style={styles.task}>
-            <Text style={styles.taskTitle}>{task.title}</Text>
-            <Text style={styles.taskDescription}>{task.description}</Text>
-          </View>
-        ))}
-      </View>
+      <Button title="Cerrar Sesión" onPress={onLogout} />
+      <FlatList
+        data={tasks}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => <TaskCard task={item} />}
+        contentContainerStyle={styles.list}
+      />
     </View>
   );
 }
@@ -27,28 +39,27 @@ export default function Home({ user, onLogout, tasks }: HomeScreenProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  text: {
-    fontSize: 18,
-    marginBottom: 20,
-  },
-  tasksContainer: {
-    marginTop: 20,
-  },
-  task: {
-    marginBottom: 10,
     padding: 10,
-    borderRadius: 5,
-    borderColor: 'gray',
-    borderWidth: 1,
+    paddingBottom: 60, // Ajustar el padding inferior para dejar espacio para la barra de navegación
+    backgroundColor: '#F5F7FA',
   },
-  taskTitle: {
-    fontWeight: 'bold',
-  },
-  taskDescription: {
-    marginTop: 5,
+  perfil: {
+    width: 150, // Ajusta el ancho del rectángulo
+    height: 150, // Ajusta la altura del rectángulo
+    marginBottom: 20,//Margen inferior para no estar pegados
+    borderRadius: 10, // Redondea los bordes de la imagen
+    borderWidth: 2, // Añade un borde a la imagen
+    borderColor: 'gray', // Color del borde
+    alignSelf: 'center', // Centrar la imagen horizontalmente
+},
+text: {
+  fontSize: 18, // Tamaño de fuente más grande para mayor énfasis
+  fontWeight: 'bold', // Texto en negrita para resaltar
+  color: '#333333', // Color de texto más oscuro para mejor legibilidad
+  textAlign: 'center', // Centrar el texto horizontalmente
+  marginBottom: 20, // Mantén el espacio inferior
+},
+  list: {
+    paddingBottom: 60, // Ajustar el padding inferior a la lista también
   },
 });
