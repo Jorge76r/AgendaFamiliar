@@ -5,7 +5,6 @@ import HomeScreen from './home';
 import Anadirtarea from './anadirtarea';
 import SettingsScreen from './settings';
 
-// Definimos la interfaz para las props de Layout
 interface LayoutProps {
   user: {
     email: string;
@@ -62,7 +61,7 @@ export default function Layout({ user, onLogout }: LayoutProps) {
         tabBarItemStyle: {
           flex: 1,
         },
-        headerShown: true, // Asegura de que el header se muestre
+        headerShown: true, 
       })}
     >
       <Tab.Screen

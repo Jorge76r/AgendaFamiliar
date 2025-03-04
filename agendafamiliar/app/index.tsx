@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { ThemeProvider } from "@/contexts/ThemeContext";  // Importar ThemeProvider
-import { LanguageProvider } from "@/contexts/LanguageContext";  // Importar LanguageProvider
+import { ThemeProvider } from "@/contexts/ThemeContext";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import Layout from './(tabs)/_layout';
 import LoginScreen from './(protected)/login';
 
@@ -22,8 +22,8 @@ export default function Index() {
   };
 
   return (
-    <ThemeProvider>  
-      <LanguageProvider>  
+    <ThemeProvider>
+      <LanguageProvider>
         <View style={styles.container}>
           {user ? <Layout user={user} onLogout={handleLogout} /> : <LoginScreen onLogin={handleLogin} />}
         </View>

@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
-import { StyleSheet, Text, View, TextInput, TouchableOpacity } from "react-native";
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, TextInputProps, ViewStyle, TextStyle } from "react-native";
 
 interface CustomInputProps {
     label: string;
@@ -11,9 +11,11 @@ interface CustomInputProps {
     keyboardType?: 'default' | 'email-address' | 'numeric';
     validationRule?: (text: string) => boolean;
     errorMessage?: string;
+    style?: TextStyle; // Añadir la propiedad style para el TextInput
+    labelStyle?: TextStyle; // Añadir la propiedad labelStyle para el label
 }
 
-const CustomInput = ({ label, value, onChangeText, placeholder = '', secureTextEntry = false, keyboardType = 'default', validationRule, errorMessage }: CustomInputProps) => {
+const CustomInput = ({ label, value, onChangeText, placeholder = '', secureTextEntry = false, keyboardType = 'default', validationRule, errorMessage, style, labelStyle }: CustomInputProps) => {
     const [isValid, setIsValid] = useState(true);
     const [isPasswordVisible, setIsPasswordVisible] = useState(!secureTextEntry);
 
@@ -26,10 +28,10 @@ const CustomInput = ({ label, value, onChangeText, placeholder = '', secureTextE
 
     return (
         <View style={styles.container}>
-            <Text style={styles.label}>{label}</Text>
+            <Text style={[styles.label, labelStyle]}>{label}</Text>
             <View style={styles.inputContainer}>
                 <TextInput 
-                    style={[styles.input, !isValid && styles.inputError]}
+                    style={[styles.input, style, !isValid && styles.inputError]}
                     placeholder={placeholder}
                     value={value}
                     onChangeText={handleOnChange}
@@ -40,7 +42,7 @@ const CustomInput = ({ label, value, onChangeText, placeholder = '', secureTextE
                 {
                     secureTextEntry && (
                         <TouchableOpacity onPress={() => { setIsPasswordVisible(!isPasswordVisible); }}>
-                            <Ionicons name={isPasswordVisible ? 'eye-off' : 'eye'} size={20} />
+                            <Ionicons name={isPasswordVisible ? 'eye-off' : 'eye'} size={20} color={style?.color || '#000'} />
                         </TouchableOpacity>
                     )
                 }

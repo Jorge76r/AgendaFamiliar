@@ -1,6 +1,9 @@
 import React from 'react';
 import { View, Text, FlatList, StyleSheet, Button, Image } from 'react-native';
 import TaskCard from '../../components/TaskCard';
+import { useTheme } from "@/contexts/ThemeContext";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { darkTheme, lightTheme } from "@/styles/themes";
 
 // Definimos la interfaz para el usuario
 interface User {
@@ -21,16 +24,26 @@ interface HomeScreenProps {
 }
 
 export default function HomeScreen({ user, onLogout, tasks }: HomeScreenProps) {
+  const { theme } = useTheme();
+  const { language } = useLanguage();
+  const themeStyles = theme === "dark" ? darkTheme : lightTheme;
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, themeStyles.container]}>
       <Image source={require('../../assets/images/home.png')} style={styles.perfil} />
-      <Text style={styles.text}>Bienvenido, {user.email}</Text>
-      <Button title="Cerrar Sesión" onPress={onLogout} />
+      <Text style={[styles.text, themeStyles.text]}>
+        {language === "es" ? `Bienvenido, ${user.email}` : `Welcome, ${user.email}`}
+      </Text>
+      <Button
+        title={language === "es" ? "Cerrar Sesión" : "Logout"}
+        onPress={onLogout}
+      />
       <FlatList
         data={tasks}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <TaskCard task={item} />}
         contentContainerStyle={styles.list}
+        style={{ width: '100%' }}
       />
     </View>
   );
@@ -51,15 +64,16 @@ const styles = StyleSheet.create({
     borderWidth: 2, // Añade un borde a la imagen
     borderColor: 'gray', // Color del borde
     alignSelf: 'center', // Centrar la imagen horizontalmente
-},
-text: {
-  fontSize: 18, // Tamaño de fuente más grande para mayor énfasis
-  fontWeight: 'bold', // Texto en negrita para resaltar
-  color: '#333333', // Color de texto más oscuro para mejor legibilidad
-  textAlign: 'center', // Centrar el texto horizontalmente
-  marginBottom: 20, // Mantén el espacio inferior
-},
+  },
+  text: {
+    fontSize: 18, // Tamaño de fuente más grande para mayor énfasis
+    fontWeight: 'bold', // Texto en negrita para resaltar
+    color: '#333333', // Color de texto más oscuro para mejor legibilidad
+    textAlign: 'center', // Centrar el texto horizontalmente
+    marginBottom: 20, // Mantén el espacio inferior
+  },
   list: {
     paddingBottom: 60, // Ajustar el padding inferior a la lista también
+    
   },
 });

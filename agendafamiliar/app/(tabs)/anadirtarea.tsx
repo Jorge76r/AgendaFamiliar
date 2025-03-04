@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { View, TextInput, Button, StyleSheet, Alert, Image } from 'react-native';
+import { useTheme } from "@/contexts/ThemeContext";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { darkTheme, lightTheme } from "@/styles/themes";
 
 interface AnadirtareaProps {
   onAddTask: (title: string, description: string) => void;
@@ -9,46 +12,44 @@ export default function Anadirtarea({ onAddTask }: AnadirtareaProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
 
+  const { theme } = useTheme();
+  const { language } = useLanguage();
+  const themeStyles = theme === "dark" ? darkTheme : lightTheme;
+
   const handleSubmit = () => {
     if (!title || !description) {
-      Alert.alert('Error', 'Por favor, completa todos los campos');
+      Alert.alert(language === "es" ? 'Error' : 'Error', language === "es" ? 'Por favor, completa todos los campos' : 'Please fill in all fields');
       return;
     }
 
     onAddTask(title, description);
     setTitle('');
     setDescription('');
-    Alert.alert('Éxito', 'Tarea añadida correctamente');
+    Alert.alert(language === "es" ? 'Éxito' : 'Success', language === "es" ? 'Tarea añadida correctamente' : 'Task added successfully');
   };
 
   return (
-    <View style={styles.container}>
+    <View style={(styles.perfil,themeStyles.container )}>
       <Image source={require('../../assets/images/anadirtarea.png')} style={styles.perfil} />
       <TextInput
-        style={styles.input}
-        placeholder="Título de la tarea"
+        style={[styles.input, themeStyles.input]}
+        placeholder={language === "es" ? "Título de la tarea" : "Task title"}
         value={title}
         onChangeText={setTitle}
       />
       <TextInput
-        style={styles.input}
-        placeholder="Descripción de la tarea"
+        style={[styles.input, themeStyles.input]}
+        placeholder={language === "es" ? "Descripción de la tarea" : "Task description"}
         value={description}
         onChangeText={setDescription}
         multiline
       />
-      <Button title="Añadir Tarea" onPress={handleSubmit} />
+      <Button title={language === "es" ? "Añadir Tarea" : "Add Task"} onPress={handleSubmit} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    paddingBottom: 60, // Añadir un padding inferior para dejar espacio para la barra de navegación
-    backgroundColor: '#F5F7FA',
-  },
   perfil: {
     width: 150, // Ajusta el ancho del rectángulo
     height: 150, // Ajusta la altura del rectángulo
@@ -60,10 +61,12 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 40,
-    borderColor: 'gray',
+    borderColor: 'var(--input-border, gray)', // Usar variable CSS con un valor por defecto
     borderWidth: 1,
     marginBottom: 10,
     paddingHorizontal: 10,
     borderRadius: 5,
+    color: 'var(--input-color, #333)', // Usar variable CSS con un valor por defecto
+    backgroundColor: 'var(--input-background, #fff)', // Usar variable CSS con un valor por defecto
   },
 });

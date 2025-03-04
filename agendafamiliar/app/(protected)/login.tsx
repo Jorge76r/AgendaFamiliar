@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Image } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, Image, StyleSheet } from 'react-native';
 import CustomInput from "../../components/CustomInput";
+import { useTheme } from "@/contexts/ThemeContext";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { darkTheme, lightTheme } from "@/styles/themes";
 
 interface LoginScreenProps {
     onLogin: (email: string, password: string) => void;
@@ -12,19 +15,23 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
+    const { theme } = useTheme();
+    const { language } = useLanguage();
+    const themeStyles = theme === "dark" ? darkTheme : lightTheme;
+
     const handleLogin = () => {
         if (!email || !password) {
-            setError('Por favor, complete todos los campos');
+            setError(language === "es" ? 'Por favor, complete todos los campos' : 'Please fill in all fields');
             return;
         }
 
         if (!email.endsWith('@gmail.com')) {
-            setError('Por favor, ingrese un correo electrónico válido');
+            setError(language === "es" ? 'Por favor, ingrese un correo electrónico válido' : 'Please enter a valid email');
             return;
         }
 
         if (password !== '1234') {
-            setError('La contraseña es 1234 ... no le digas a nadie');
+            setError(language === "es" ? 'La contraseña es 1234 ... no le digas a nadie' : 'The password is 1234 ... don\'t tell anyone');
             return;
         }
 
@@ -35,32 +42,36 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
     };
 
     return (
-        <View style={styles.container}>
-            <View style={styles.content}>
+        <View style={themeStyles.container}>
+            <View style={themeStyles.content}>
                 <Image source={require('../../assets/images/logo.png')} style={styles.logo} />
                 <CustomInput
-                    label="Correo Electrónico"
+                    label={language === "es" ? "Correo Electrónico" : "Email"}
                     value={email}
                     onChangeText={setEmail}
                     keyboardType="email-address"
                     validationRule={(text) => text.endsWith('@gmail.com')}
-                    errorMessage="Correo inválido"
+                    errorMessage={language === "es" ? "Correo inválido" : "Invalid email"}
+                    style={themeStyles.input} // Aplica los estilos de entrada
+                    labelStyle={themeStyles.text} // Aplica los estilos del label
                 />
                 <CustomInput 
-                    label="Contraseña"
+                    label={language === "es" ? "Contraseña" : "Password"}
                     value={password}
                     keyboardType='numeric'
                     onChangeText={setPassword}
                     secureTextEntry={true}
+                    style={themeStyles.input} // Aplica los estilos de entrada
+                    labelStyle={themeStyles.text} // Aplica los estilos del label
                 />
 
-                {error ? <Text style={styles.error}>{error}</Text> : null}
+                {error ? <Text style={themeStyles.error}>{error}</Text> : null}
 
                 {loading ? (
                     <ActivityIndicator size="large" color="#4A90E2" />
                 ) : (
-                    <TouchableOpacity style={styles.button} onPress={handleLogin}>
-                        <Text style={styles.buttonText}>Ingresar</Text>
+                    <TouchableOpacity style={themeStyles.button} onPress={handleLogin}>
+                        <Text style={themeStyles.buttonText}>{language === "es" ? "Ingresar" : "Login"}</Text>
                     </TouchableOpacity>
                 )}
             </View>
@@ -69,41 +80,13 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 20,
-    },
     logo: {
         width: 200, // Ajusta el ancho del rectángulo
-        height: 100, // Ajusta la altura del rectángulo
+        height: 200, // Ajusta la altura del rectángulo
         marginBottom: 40,
-        borderRadius: 15, // Redondea los bordes de la imagen
-        borderWidth: 2, // Añade un borde a la imagen
+        //borderRadius: 15, // Redondea los bordes de la imagen
+        //borderWidth: 2, // Añade un borde a la imagen
         borderColor: 'gray', // Color del borde
         alignSelf: 'center', // Centrar la imagen horizontalmente
-    },
-    content: {
-        width: '100%',
-    },
-    error: {
-        color: "red",
-        fontSize: 16,
-        fontWeight: "bold",
-        marginBottom: 15,
-    },
-    button: {
-        backgroundColor: "#4A90E2",
-        padding: 15,
-        borderRadius: 10,
-        width: "100%",
-        alignItems: "center",
-        marginBottom: 10,
-    },
-    buttonText: {
-        color: "white",
-        fontSize: 16,
-        fontWeight: "bold",
     },
 });
