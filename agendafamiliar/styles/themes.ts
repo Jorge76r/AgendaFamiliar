@@ -83,8 +83,8 @@ export const darkTheme = StyleSheet.create({
     borderColor: "#FFFFFF", // Color del borde para el tema oscuro
     color: "#000000", // Color del texto para el tema oscuro (asegurando que siempre sea negro)
     width: '100%', // Ajuste para ocupar el ancho completo de la pantalla
-    padding: 10,
-    marginBottom: 10,
+    padding: 5,
+    marginBottom: 5,
     borderWidth: 1,
     borderRadius: 5,
     backgroundColor: "#FFFFFF", // Fondo blanco para los inputs

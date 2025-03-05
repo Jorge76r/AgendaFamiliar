@@ -5,10 +5,10 @@ import HomeScreen from './home';
 import Anadirtarea from './anadirtarea';
 import SettingsScreen from './settings';
 
+// Ajustamos LayoutProps para reflejar correctamente el tipo de user
 interface LayoutProps {
   user: {
-    email: string;
-    password: string;
+    email: string; // Solo necesitamos el correo
   };
   onLogout: () => void;
 }
@@ -16,17 +16,18 @@ interface LayoutProps {
 const Tab = createBottomTabNavigator();
 
 export default function Layout({ user, onLogout }: LayoutProps) {
+  // Tareas de ejemplo para mostrar en la lista
   const [tasks, setTasks] = useState([
     { id: '1', title: 'Tarea 1', description: 'Descripción de la tarea 1' },
     { id: '2', title: 'Tarea 2', description: 'Descripción de la tarea 2' },
-    
   ]);
 
+  // Maneja la adición de nuevas tareas
   const handleAddTask = (title: string, description: string) => {
     const newTask = {
       id: (tasks.length + 1).toString(),
       title,
-      description
+      description,
     };
     setTasks([...tasks, newTask]);
   };
@@ -42,7 +43,7 @@ export default function Layout({ user, onLogout }: LayoutProps) {
           } else if (route.name === "anadirtarea") {
             iconName = focused ? "add-circle" : "add-circle-outline";
           } else if (route.name === "settings") {
-            iconName = focused ? "settings" : "settings-outline"; 
+            iconName = focused ? "settings" : "settings-outline";
           } else {
             iconName = "home"; // Valor por defecto para evitar el error de no definido.
           }
@@ -51,7 +52,6 @@ export default function Layout({ user, onLogout }: LayoutProps) {
         },
         tabBarActiveTintColor: "midnightblue",
         tabBarInactiveTintColor: "slategray",
-
         tabBarStyle: {
           backgroundColor: 'white',
         },
@@ -61,7 +61,7 @@ export default function Layout({ user, onLogout }: LayoutProps) {
         tabBarItemStyle: {
           flex: 1,
         },
-        headerShown: true, 
+        headerShown: true,
       })}
     >
       <Tab.Screen
