@@ -8,10 +8,15 @@ const app = express();
 const port = process.env.PORT || 3000;
 const hostname = process.env.HOSTNAME || '0.0.0.0';
 
-// Credenciales válidas
+// Clave secreta para JWT
 const secretKey = process.env.SECRET_KEY || 'mi_clave_secreta';
-const validUser = process.env.VALID_USER || 'jorge76r@gmail.com';
-const validPassword = process.env.VALID_PASSWORD || '1234';
+
+// Usuarios válidos (clave: usuario, valor: contraseña)
+const validUsers = {
+    "jorge76r@gmail.com": "1234",
+    "usuario2@example.com": "abcd",
+    "usuario3@example.com": "5678"
+};
 
 // Logs de solicitudes entrantes
 app.use((req, res, next) => {
@@ -34,12 +39,14 @@ app.post('/login', (req, res) => {
 
     const { username, password } = req.body;
 
+    // Verificar que las credenciales estén presentes
     if (!username || !password) {
         console.log('Error: Faltan credenciales');
         return res.status(400).json({ message: 'Faltan credenciales' });
     }
 
-    if (username === validUser && password === validPassword) {
+    // Verificar si el usuario y la contraseña coinciden
+    if (validUsers[username] && validUsers[username] === password) {
         const token = jwt.sign({ username }, secretKey, { expiresIn: '1h' });
         console.log(`Inicio de sesión exitoso para: ${username}`);
         return res.json({ token });
