@@ -25,26 +25,26 @@ export default function Anadirtarea({ onAddTask }: AnadirtareaProps) {
     onAddTask(title, description);
     setTitle('');
     setDescription('');
-    Alert.alert(language === "es" ? 'Éxito' : 'Success', language === "es" ? 'Tarea añadida correctamente' : 'Task added successfully');
+    Alert.alert(language === "es" ? 'Éxito' : 'Success', language === "es" ? 'Agendado correctamente' : 'scheduled successfully');
   };
 
   return (
     <View style={(styles.perfil,themeStyles.container )}>
-      <Image source={require('../../assets/images/anadirtarea.png')} style={styles.perfil} />
+      <Image source={require('../../assets/images/agendar.png')} style={styles.perfil} />
       <TextInput
         style={[styles.input, themeStyles.input]}
-        placeholder={language === "es" ? "Título de la tarea" : "Task title"}
+        placeholder={language === "es" ? "Título" : "Title"}
         value={title}
         onChangeText={setTitle}
       />
       <TextInput
         style={[styles.input, themeStyles.input]}
-        placeholder={language === "es" ? "Descripción de la tarea" : "Task description"}
+        placeholder={language === "es" ? "Descripción" : "Description"}
         value={description}
         onChangeText={setDescription}
         multiline
       />
-      <Button title={language === "es" ? "Añadir Tarea" : "Add Task"} onPress={handleSubmit} />
+      <Button title={language === "es" ? "Agendar" : "Schedule"} onPress={handleSubmit} />
     </View>
   );
 }
