@@ -2,8 +2,17 @@ import React, { useState } from 'react';
 import { Ionicons } from "@expo/vector-icons";
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import HomeScreen from './home';
-import Anadirtarea from './agendar';
+import Agendar from './agendar';
 import SettingsScreen from './settings';
+
+// Define la interfaz para las tareas
+interface Task {
+  id: string;
+  title: string;
+  description: string;
+  tipo: string;
+  fechaHora: string;
+}
 
 interface LayoutProps {
   user: {
@@ -16,18 +25,22 @@ interface LayoutProps {
 const Tab = createBottomTabNavigator();
 
 export default function Layout({ user, onLogout }: LayoutProps) {
-  const [tasks, setTasks] = useState([
-    { id: '', title: '', description: '' }, 
-  ]);
+  // Agrega el tipo explícito para las tareas
+  const [tasks, setTasks] = useState<Task[]>([]);
 
-  const handleAddTask = (title: string, description: string) => {
-    const newTask = {
+  const handleAddTask = (title: string, description: string, tipo: string, fechaHora: string) => {
+    const newTask: Task = {
       id: (tasks.length + 1).toString(),
       title,
-      description
+      description,
+      tipo,
+      fechaHora,
     };
     setTasks([...tasks, newTask]);
   };
+
+  const HomeTab = () => <HomeScreen user={user} onLogout={onLogout} tasks={tasks} />;
+  const AgendarTab = () => <Agendar onAddTask={handleAddTask} />;
 
   return (
     <Tab.Navigator
@@ -40,7 +53,7 @@ export default function Layout({ user, onLogout }: LayoutProps) {
           } else if (route.name === "Agendar") {
             iconName = focused ? "add-circle" : "add-circle-outline";
           } else if (route.name === "Settings") {
-            iconName = focused ? "settings" : "settings-outline"; 
+            iconName = focused ? "settings" : "settings-outline";
           } else {
             iconName = "home"; // Valor por defecto para evitar el error de no definido.
           }
@@ -49,27 +62,17 @@ export default function Layout({ user, onLogout }: LayoutProps) {
         },
         tabBarActiveTintColor: "midnightblue",
         tabBarInactiveTintColor: "slategray",
-
-        tabBarStyle: {
-          backgroundColor: 'white',
-        },
-        tabBarLabelStyle: {
-          fontSize: 12,
-        },
-        tabBarItemStyle: {
-          flex: 1,
-        },
-        headerShown: true, 
+        tabBarStyle: { backgroundColor: 'white' },
       })}
     >
       <Tab.Screen
         name="Home"
-        component={() => <HomeScreen user={user} onLogout={onLogout} tasks={tasks} />}
+        component={HomeTab}
         options={{ headerTitle: 'Inicio' }}
       />
       <Tab.Screen
         name="Agendar"
-        component={() => <Anadirtarea onAddTask={handleAddTask} />}
+        component={AgendarTab}
         options={{ headerTitle: 'Agendar' }}
       />
       <Tab.Screen
