@@ -1,17 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import HomeScreen from './home';
-import Agendar from './agendar';
-import SettingsScreen from './settings';
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import HomeScreen from "./home";
+import Agendar from "./agendar";
+import SettingsScreen from "./settings";
 
-// Define la interfaz para las tareas
+// Define la estructura de las tareas
 interface Task {
   id: string;
   title: string;
   description: string;
   tipo: string;
   fechaHora: string;
+  recurrencia: string;
 }
 
 interface LayoutProps {
@@ -25,61 +26,101 @@ interface LayoutProps {
 const Tab = createBottomTabNavigator();
 
 export default function Layout({ user, onLogout }: LayoutProps) {
-  // Agrega el tipo explícito para las tareas
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]); // Estado para las tareas
 
-  const handleAddTask = (title: string, description: string, tipo: string, fechaHora: string) => {
-    const newTask: Task = {
-      id: (tasks.length + 1).toString(),
-      title,
-      description,
-      tipo,
-      fechaHora,
-    };
-    setTasks([...tasks, newTask]);
+  // Función para manejar la adición de tareas
+  const handleAddTask = (
+    title: string,
+    description: string,
+    tipo: string,
+    fechaHora: string,
+    recurrencia: string
+  ) => {
+    const newTasks: Task[] = [];
+    const baseDate = new Date(fechaHora);
+
+    if (isNaN(baseDate.getTime())) {
+      alert("La fecha ingresada no es válida.");
+      return;
+    }
+
+    if (recurrencia === "Diario") {
+      for (let i = 0; i < 7; i++) {
+        const nextDate = new Date(baseDate);
+        nextDate.setDate(nextDate.getDate() + i);
+        newTasks.push({
+          id: (tasks.length + newTasks.length + 1).toString(),
+          title,
+          description,
+          tipo,
+          fechaHora: nextDate.toISOString(),
+          recurrencia,
+        });
+      }
+    } else if (recurrencia === "Semanal") {
+      for (let i = 0; i < 4; i++) {
+        const nextDate = new Date(baseDate);
+        nextDate.setDate(nextDate.getDate() + i * 7);
+        newTasks.push({
+          id: (tasks.length + newTasks.length + 1).toString(),
+          title,
+          description,
+          tipo,
+          fechaHora: nextDate.toISOString(),
+          recurrencia,
+        });
+      }
+    } else if (recurrencia === "Mensual") {
+      for (let i = 0; i < 4; i++) {
+        const nextDate = new Date(baseDate);
+        nextDate.setMonth(nextDate.getMonth() + i);
+        newTasks.push({
+          id: (tasks.length + newTasks.length + 1).toString(),
+          title,
+          description,
+          tipo,
+          fechaHora: nextDate.toISOString(),
+          recurrencia,
+        });
+      }
+    } else {
+      newTasks.push({
+        id: (tasks.length + newTasks.length + 1).toString(),
+        title,
+        description,
+        tipo,
+        fechaHora,
+        recurrencia,
+      });
+    }
+
+    setTasks((prevTasks) => [...prevTasks, ...newTasks]);
   };
-
-  const HomeTab = () => <HomeScreen user={user} onLogout={onLogout} tasks={tasks} />;
-  const AgendarTab = () => <Agendar onAddTask={handleAddTask} />;
 
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
           let iconName: keyof typeof Ionicons.glyphMap;
-
-          if (route.name === "Home") {
-            iconName = focused ? "home" : "home-outline";
-          } else if (route.name === "Agendar") {
+          if (route.name === "Home") iconName = focused ? "home" : "home-outline";
+          else if (route.name === "Agendar")
             iconName = focused ? "add-circle" : "add-circle-outline";
-          } else if (route.name === "Settings") {
-            iconName = focused ? "settings" : "settings-outline";
-          } else {
-            iconName = "home"; // Valor por defecto para evitar el error de no definido.
-          }
+          else iconName = focused ? "settings" : "settings-outline";
 
           return <Ionicons name={iconName} size={size} color={color} />;
         },
         tabBarActiveTintColor: "midnightblue",
         tabBarInactiveTintColor: "slategray",
-        tabBarStyle: { backgroundColor: 'white' },
+        tabBarStyle: { backgroundColor: "white" },
       })}
     >
-      <Tab.Screen
-        name="Home"
-        component={HomeTab}
-        options={{ headerTitle: 'Inicio' }}
-      />
-      <Tab.Screen
-        name="Agendar"
-        component={AgendarTab}
-        options={{ headerTitle: 'Agendar' }}
-      />
-      <Tab.Screen
-        name="Settings"
-        component={SettingsScreen}
-        options={{ headerTitle: 'Settings' }}
-      />
+      <Tab.Screen name="Home" options={{ headerTitle: "Inicio" }}>
+        {() => <HomeScreen user={user} onLogout={onLogout} tasks={tasks} />}
+      </Tab.Screen>
+      <Tab.Screen name="Agendar" options={{ headerTitle: "Agendar" }}>
+        {() => <Agendar onAddTask={handleAddTask} />}
+      </Tab.Screen>
+      <Tab.Screen name="Settings" component={SettingsScreen} options={{ headerTitle: "Ajustes" }} />
     </Tab.Navigator>
   );
 }

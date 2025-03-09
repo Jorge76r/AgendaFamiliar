@@ -1,10 +1,6 @@
-import React from 'react';
-import { View, Text, FlatList, StyleSheet, Button, Image } from 'react-native';
-import { useTheme } from "@/contexts/ThemeContext";
-import { useLanguage } from "@/contexts/LanguageContext";
-import { darkTheme, lightTheme } from "@/styles/themes";
+import React from "react";
+import { View, Text, FlatList, StyleSheet, Button, Image } from "react-native";
 
-// Definimos la interfaz para el usuario
 interface User {
   email: string;
   password: string;
@@ -16,6 +12,7 @@ interface Task {
   description: string;
   tipo: string;
   fechaHora: string;
+  recurrencia: string;
 }
 
 interface HomeScreenProps {
@@ -25,37 +22,34 @@ interface HomeScreenProps {
 }
 
 export default function HomeScreen({ user, onLogout, tasks }: HomeScreenProps) {
-  const { theme } = useTheme();
-  const { language } = useLanguage();
-  const themeStyles = theme === "dark" ? darkTheme : lightTheme;
-
   return (
-    <View style={[styles.container, themeStyles.container]}>
-      <Image source={require('../../assets/images/home.png')} style={styles.perfil} />
-      <Text style={[styles.text, themeStyles.text]}>
-        {language === "es" ? `Bienvenido, ${user.email}` : `Welcome, ${user.email}`}
-      </Text>
-      <Button
-        title={language === "es" ? "Cerrar Sesión" : "Logout"}
-        onPress={onLogout}
-      />
-      <Text style={[styles.text, themeStyles.text]}>
-        {language === "es" ? "Tareas Agendadas" : "Scheduled Tasks"}
-      </Text>
+    <View style={styles.container}>
+      {/* Imagen de bienvenida */}
+      <Image source={require("../../assets/images/home.png")} style={styles.perfil} />
+      <Text style={styles.welcomeText}>Bienvenido, {user.email}</Text>
+
+      {/* Botón para cerrar sesión */}
+      <Button title="Cerrar Sesión" onPress={onLogout} />
+
+      {/* Título para las tareas */}
+      <Text style={styles.sectionTitle}>Tareas Agendadas</Text>
+
+      {/* Lista de tareas o mensaje cuando está vacío */}
       <FlatList
         data={tasks}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.taskCard}>
-            <Text style={styles.title}>{item.title} ({item.tipo})</Text>
-            <Text style={styles.description}>{item.description}</Text>
-            <Text style={styles.dateTime}>
-              {language === "es" ? "Fecha y Hora:" : "Date and Time:"} {item.fechaHora}
-            </Text>
+            <Text style={styles.taskTitle}>{item.title} ({item.tipo})</Text>
+            <Text style={styles.taskDescription}>{item.description}</Text>
+            <Text style={styles.taskDateTime}>Fecha y Hora: {item.fechaHora}</Text>
+            <Text style={styles.taskRecurrencia}>Recurrencia: {item.recurrencia}</Text>
           </View>
         )}
-        contentContainerStyle={styles.list}
-        style={{ width: '100%' }}
+        ListEmptyComponent={
+          <Text style={styles.emptyText}>No hay tareas agendadas.</Text>
+        }
+        contentContainerStyle={tasks.length === 0 ? styles.emptyListContainer : styles.listContainer}
       />
     </View>
   );
@@ -65,50 +59,67 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 10,
-    paddingBottom: 60, // Ajustar para dejar espacio para la barra de navegación
-    backgroundColor: '#F5F7FA',
+    backgroundColor: "#F5F7FA",
   },
   perfil: {
     width: 150,
     height: 150,
+    alignSelf: "center",
     marginBottom: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: 'gray',
-    alignSelf: 'center',
   },
-  text: {
+  welcomeText: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333333',
-    textAlign: 'center',
+    fontWeight: "bold",
+    textAlign: "center",
     marginBottom: 20,
   },
-  list: {
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 10,
+  },
+  listContainer: {
     paddingBottom: 60,
+  },
+  emptyListContainer: {
+    flexGrow: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  emptyText: {
+    fontSize: 16,
+    color: "gray",
+    textAlign: "center",
   },
   taskCard: {
     padding: 10,
-    marginBottom: 10,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderRadius: 5,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
+    marginBottom: 10,
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 3, // Para Android
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 2,
   },
-  title: {
+  taskTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 5,
   },
-  description: {
+  taskDescription: {
     fontSize: 14,
     marginBottom: 5,
+    color: "#333",
   },
-  dateTime: {
+  taskDateTime: {
     fontSize: 12,
-    color: 'gray',
+    color: "gray",
+    marginBottom: 5,
+  },
+  taskRecurrencia: {
+    fontSize: 12,
+    color: "darkblue",
   },
 });
