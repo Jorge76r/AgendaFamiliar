@@ -41,6 +41,7 @@ export const lightTheme = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 15,
   },
+  linkText: { marginTop: 10, color: "#007bff", textDecorationLine: "underline" },
   button: {
     backgroundColor: "#3498db",
     padding: 12,
@@ -98,6 +99,7 @@ export const darkTheme = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 15,
   },
+  linkText: { marginTop: 10, color: "#007bff", textDecorationLine: "underline" },
   button: {
     backgroundColor: "#1abc9c",
     padding: 12,

@@ -1,11 +1,10 @@
-import React, { useState } from "react";
+import React from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import HomeScreen from "./home";
 import Agendar from "./agendar";
 import SettingsScreen from "./settings";
 
-// Define la estructura de las tareas
 interface Task {
   id: string;
   title: string;
@@ -21,82 +20,19 @@ interface LayoutProps {
     password: string;
   };
   onLogout: () => void;
-}
-
-const Tab = createBottomTabNavigator();
-
-export default function Layout({ user, onLogout }: LayoutProps) {
-  const [tasks, setTasks] = useState<Task[]>([]); // Estado para las tareas
-
-  // Función para manejar la adición de tareas
-  const handleAddTask = (
+  tasks: Task[]; // Recibir tasks desde Index
+  onAddTask: (
     title: string,
     description: string,
     tipo: string,
     fechaHora: string,
     recurrencia: string
-  ) => {
-    const newTasks: Task[] = [];
-    const baseDate = new Date(fechaHora);
+  ) => void;
+}
 
-    if (isNaN(baseDate.getTime())) {
-      alert("La fecha ingresada no es válida.");
-      return;
-    }
+const Tab = createBottomTabNavigator();
 
-    if (recurrencia === "Diario") {
-      for (let i = 0; i < 7; i++) {
-        const nextDate = new Date(baseDate);
-        nextDate.setDate(nextDate.getDate() + i);
-        newTasks.push({
-          id: (tasks.length + newTasks.length + 1).toString(),
-          title,
-          description,
-          tipo,
-          fechaHora: nextDate.toISOString(),
-          recurrencia,
-        });
-      }
-    } else if (recurrencia === "Semanal") {
-      for (let i = 0; i < 4; i++) {
-        const nextDate = new Date(baseDate);
-        nextDate.setDate(nextDate.getDate() + i * 7);
-        newTasks.push({
-          id: (tasks.length + newTasks.length + 1).toString(),
-          title,
-          description,
-          tipo,
-          fechaHora: nextDate.toISOString(),
-          recurrencia,
-        });
-      }
-    } else if (recurrencia === "Mensual") {
-      for (let i = 0; i < 4; i++) {
-        const nextDate = new Date(baseDate);
-        nextDate.setMonth(nextDate.getMonth() + i);
-        newTasks.push({
-          id: (tasks.length + newTasks.length + 1).toString(),
-          title,
-          description,
-          tipo,
-          fechaHora: nextDate.toISOString(),
-          recurrencia,
-        });
-      }
-    } else {
-      newTasks.push({
-        id: (tasks.length + newTasks.length + 1).toString(),
-        title,
-        description,
-        tipo,
-        fechaHora,
-        recurrencia,
-      });
-    }
-
-    setTasks((prevTasks) => [...prevTasks, ...newTasks]);
-  };
-
+export default function Layout({ user, onLogout, tasks, onAddTask }: LayoutProps) {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -118,7 +54,7 @@ export default function Layout({ user, onLogout }: LayoutProps) {
         {() => <HomeScreen user={user} onLogout={onLogout} tasks={tasks} />}
       </Tab.Screen>
       <Tab.Screen name="Agendar" options={{ headerTitle: "Agendar" }}>
-        {() => <Agendar onAddTask={handleAddTask} />}
+        {() => <Agendar onAddTask={onAddTask} />}
       </Tab.Screen>
       <Tab.Screen name="Settings" component={SettingsScreen} options={{ headerTitle: "Ajustes" }} />
     </Tab.Navigator>

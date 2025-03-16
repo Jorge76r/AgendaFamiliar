@@ -1,6 +1,7 @@
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { TasksProvider } from "@/contexts/TasksContext"; // Importa el nuevo contexto
 import { Stack } from "expo-router";
 
 export default function RootLayout() {
@@ -8,7 +9,9 @@ export default function RootLayout() {
         <ThemeProvider>
             <LanguageProvider>
                 <AuthProvider>
-                    <Stack />
+                    <TasksProvider>
+                        <Stack />
+                    </TasksProvider>
                 </AuthProvider>
             </LanguageProvider>
         </ThemeProvider>

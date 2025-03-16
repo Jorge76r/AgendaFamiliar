@@ -2,8 +2,7 @@ import React from "react";
 import { View, Text, FlatList, StyleSheet, Button, Image } from "react-native";
 
 interface User {
-  email: string;
-  password: string;
+  email?: string; // Opcional para evitar errores
 }
 
 interface Task {
@@ -16,27 +15,31 @@ interface Task {
 }
 
 interface HomeScreenProps {
-  user: User;
+  user?: User; // `user` opcional
   onLogout: () => void;
-  tasks: Task[];
+  tasks?: Task[]; // `tasks` opcional
 }
 
-export default function HomeScreen({ user, onLogout, tasks }: HomeScreenProps) {
+export default function HomeScreen({ user = {}, onLogout, tasks = [] }: HomeScreenProps) {
   return (
     <View style={styles.container}>
       {/* Imagen de bienvenida */}
       <Image source={require("../../assets/images/home.png")} style={styles.perfil} />
-      <Text style={styles.welcomeText}>Bienvenido, {user.email}</Text>
+      
+      {/* Texto de bienvenida */}
+      <Text style={styles.welcomeText}>
+        Bienvenido, {user?.email || "invitado"}
+      </Text>
 
       {/* Botón para cerrar sesión */}
       <Button title="Cerrar Sesión" onPress={onLogout} />
 
-      {/* Título para las tareas */}
+      {/* Título de la sección de tareas */}
       <Text style={styles.sectionTitle}>Tareas Agendadas</Text>
 
-      {/* Lista de tareas o mensaje cuando está vacío */}
+      {/* Lista de tareas o mensaje de lista vacía */}
       <FlatList
-        data={tasks}
+        data={tasks} // Siempre será un array por defecto
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.taskCard}>

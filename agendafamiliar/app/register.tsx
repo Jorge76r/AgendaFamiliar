@@ -7,13 +7,19 @@ import {
   Animated,
   ActivityIndicator,
   Image,
+  Alert,
 } from "react-native";
-import CustomInput from "../../components/CustomInput";
+import CustomInput from "../components/CustomInput";
 import { useTheme } from "@/contexts/ThemeContext"; // Contexto de tema
 import { lightTheme, darkTheme } from "@/styles/themes"; // Temas definidos
 import { useLanguage } from "@/contexts/LanguageContext"; // Contexto de idioma
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export default function LoginScreen({ onLogin }: { onLogin: (email: string, password: string) => void }) {
+interface RegisterScreenProps {
+  onRegisterComplete: () => void;
+}
+
+export default function RegisterScreen({ onRegisterComplete }: RegisterScreenProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -45,7 +51,7 @@ export default function LoginScreen({ onLogin }: { onLogin: (email: string, pass
     outputRange: ["0%", "100%"],
   });
 
-  const handleLogin = async () => {
+  const handleRegister = async () => {
     if (!email || !password) {
       setError(language === "es" ? "Por favor, complete todos los campos" : "Please fill in all fields");
       return;
@@ -55,26 +61,17 @@ export default function LoginScreen({ onLogin }: { onLogin: (email: string, pass
     setLoading(true);
 
     try {
-      const response = await fetch("http://192.168.1.48:3000/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username: email, password }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Inicio de sesión exitoso:", data);
-        onLogin(email, password);
-      } else if (response.status === 401) {
-        setError(language === "es" ? "Credenciales inválidas" : "Invalid credentials");
-      } else {
-        setError(language === "es" ? "Error en el servidor, inténtelo más tarde" : "Server error, please try again later");
-      }
+      const userData = { email, password };
+      await AsyncStorage.setItem("registeredUser", JSON.stringify(userData));
+      console.log("Usuario registrado y guardado:", userData);
+      Alert.alert(
+        language === "es" ? "Registro Exitoso" : "Registration Successful",
+        language === "es" ? "Tu cuenta ha sido creada." : "Your account has been created."
+      );
+      onRegisterComplete(); // Navegar al login
     } catch (error) {
-      console.error("Error de conexión:", error);
-      setError(language === "es" ? "Error al conectar con el servidor" : "Error connecting to the server");
+      console.error("Error al registrar:", error);
+      setError(language === "es" ? "Error al registrar usuario" : "Error registering user");
     }
 
     setLoading(false);
@@ -82,7 +79,7 @@ export default function LoginScreen({ onLogin }: { onLogin: (email: string, pass
 
   return (
     <View style={themeStyles.container}>
-      <Image source={require("../../assets/images/logo.png")} style={styles.logo} />
+      
       <CustomInput
         label={language === "es" ? "Correo Electrónico" : "Email"}
         value={email}
@@ -108,7 +105,7 @@ export default function LoginScreen({ onLogin }: { onLogin: (email: string, pass
           style={themeStyles.button}
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
-          onPress={handleLogin}
+          onPress={handleRegister}
         >
           <Animated.View
             style={[
@@ -117,7 +114,7 @@ export default function LoginScreen({ onLogin }: { onLogin: (email: string, pass
             ]}
           />
           <Text style={[themeStyles.buttonText, { zIndex: 1 }]}>
-            {language === "es" ? "Ingresar" : "Login"}
+            {language === "es" ? "Registrar" : "Register"}
           </Text>
         </TouchableOpacity>
       )}
@@ -130,5 +127,6 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     alignSelf: "center",
+    marginBottom: 20,
   },
 });

@@ -1,40 +1,85 @@
-import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
-import { ThemeProvider } from "@/contexts/ThemeContext";
-import { LanguageProvider } from "@/contexts/LanguageContext";
-import Layout from './(tabs)/_layout';
-import LoginScreen from './(protected)/login';
+import React, { useState, useEffect } from "react";
+import { View, StyleSheet } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import LoginScreen from "./login";
+import RegisterScreen from "./register";
+import Layout from "./(tabs)/_layout";
 
 interface User {
   email: string;
   password: string;
 }
 
+interface Task {
+  id: string;
+  title: string;
+  description: string;
+  tipo: string;
+  fechaHora: string;
+  recurrencia: string;
+}
+
 export default function Index() {
   const [user, setUser] = useState<User | null>(null);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [showRegister, setShowRegister] = useState(false);
 
   const handleLogin = (email: string, password: string) => {
-    console.log("Usuario autenticado:", email);
     setUser({ email, password });
   };
 
   const handleLogout = () => {
-    console.log("Cierre de sesión");
     setUser(null);
   };
 
+  const handleAddTask = (
+    title: string,
+    description: string,
+    tipo: string,
+    fechaHora: string,
+    recurrencia: string
+  ) => {
+    const newTask = {
+      id: (tasks.length + 1).toString(),
+      title,
+      description,
+      tipo,
+      fechaHora,
+      recurrencia,
+    };
+    setTasks((prevTasks) => [...prevTasks, newTask]);
+  };
+
+  useEffect(() => {
+    const fetchTasks = async () => {
+      const storedTasks = await AsyncStorage.getItem("tasks");
+      if (storedTasks) {
+        setTasks(JSON.parse(storedTasks));
+      }
+    };
+
+    fetchTasks();
+  }, []);
+
+  const handleRegisterComplete = () => {
+    setShowRegister(false); // Vuelve al login después del registro
+  };
+
   return (
-    <ThemeProvider>
-      <LanguageProvider>
-        <View style={styles.container}>
-          {user ? (
-            <Layout user={user} onLogout={handleLogout} />
-          ) : (
-            <LoginScreen onLogin={handleLogin} />
-          )}
-        </View>
-      </LanguageProvider>
-    </ThemeProvider>
+    <View style={styles.container}>
+      {user ? (
+        <Layout
+          user={user}
+          onLogout={handleLogout}
+          tasks={tasks}
+          onAddTask={handleAddTask}
+        />
+      ) : showRegister ? (
+        <RegisterScreen onRegisterComplete={handleRegisterComplete} />
+      ) : (
+        <LoginScreen onLogin={handleLogin} onRegister={() => setShowRegister(true)} />
+      )}
+    </View>
   );
 }
 
