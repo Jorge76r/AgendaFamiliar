@@ -10,6 +10,8 @@ import {
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+import { useTheme } from "@/contexts/ThemeContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface AgendarProps {
   onAddTask: (
@@ -29,6 +31,10 @@ export default function Agendar({ onAddTask }: AgendarProps) {
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [recurrencia, setRecurrencia] = useState<"Un solo día" | "Diario" | "Semanal" | "Mensual">("Un solo día");
 
+  const { theme } = useTheme(); // Acceso al tema dinámico
+  const { language } = useLanguage(); // Acceso al idioma dinámico
+  const styles = theme === "dark" ? darkStyles : lightStyles;
+
   const showDatePicker = () => setDatePickerVisibility(true);
   const hideDatePicker = () => setDatePickerVisibility(false);
 
@@ -39,7 +45,10 @@ export default function Agendar({ onAddTask }: AgendarProps) {
 
   const handleSubmit = () => {
     if (!title || !description || !fechaHora) {
-      Alert.alert("Error", "Por favor, completa todos los campos.");
+      Alert.alert(
+        language === "es" ? "Error" : "Error",
+        language === "es" ? "Por favor, completa todos los campos." : "Please fill in all fields."
+      );
       return;
     }
 
@@ -52,7 +61,10 @@ export default function Agendar({ onAddTask }: AgendarProps) {
     setFechaHora("");
     setRecurrencia("Un solo día");
 
-    Alert.alert("Éxito", "Tarea agendada correctamente.");
+    Alert.alert(
+      language === "es" ? "Éxito" : "Success",
+      language === "es" ? "Tarea agendada correctamente." : "Task successfully scheduled."
+    );
   };
 
   return (
@@ -60,15 +72,15 @@ export default function Agendar({ onAddTask }: AgendarProps) {
       {/* Campo para el título */}
       <TextInput
         style={styles.input}
-        placeholder="Título"
+        placeholder={language === "es" ? "Título" : "Title"}
         value={title}
         onChangeText={setTitle}
       />
-      
+
       {/* Campo para la descripción */}
       <TextInput
         style={styles.input}
-        placeholder="Descripción"
+        placeholder={language === "es" ? "Descripción" : "Description"}
         value={description}
         onChangeText={setDescription}
         multiline
@@ -81,9 +93,9 @@ export default function Agendar({ onAddTask }: AgendarProps) {
           onValueChange={(value) => setTipo(value)}
           style={styles.picker}
         >
-          <Picker.Item label="Medicamento" value="Medicamento" />
-          <Picker.Item label="Cita Médica" value="Cita Médica" />
-          <Picker.Item label="Otros" value="Otros" />
+          <Picker.Item label={language === "es" ? "Medicamento" : "Medication"} value="Medicamento" />
+          <Picker.Item label={language === "es" ? "Cita Médica" : "Doctor's Appointment"} value="Cita Médica" />
+          <Picker.Item label={language === "es" ? "Otros" : "Others"} value="Otros" />
         </Picker>
       </View>
 
@@ -94,16 +106,22 @@ export default function Agendar({ onAddTask }: AgendarProps) {
           onValueChange={(value) => setRecurrencia(value)}
           style={styles.picker}
         >
-          <Picker.Item label="Un solo día" value="Un solo día" />
-          <Picker.Item label="Diario" value="Diario" />
-          <Picker.Item label="Semanal" value="Semanal" />
-          <Picker.Item label="Mensual" value="Mensual" />
+          <Picker.Item label={language === "es" ? "Un solo día" : "One-time"} value="Un solo día" />
+          <Picker.Item label={language === "es" ? "Diario" : "Daily"} value="Diario" />
+          <Picker.Item label={language === "es" ? "Semanal" : "Weekly"} value="Semanal" />
+          <Picker.Item label={language === "es" ? "Mensual" : "Monthly"} value="Mensual" />
         </Picker>
       </View>
 
       {/* Botón para seleccionar fecha y hora */}
       <TouchableOpacity onPress={showDatePicker} style={styles.datePicker}>
-        <Text>{fechaHora ? new Date(fechaHora).toLocaleString("es-ES") : "Seleccionar Fecha y Hora"}</Text>
+        <Text>
+          {fechaHora
+            ? new Date(fechaHora).toLocaleString(language === "es" ? "es-ES" : "en-US")
+            : language === "es"
+            ? "Seleccionar Fecha y Hora"
+            : "Select Date and Time"}
+        </Text>
       </TouchableOpacity>
 
       <DateTimePickerModal
@@ -114,15 +132,43 @@ export default function Agendar({ onAddTask }: AgendarProps) {
       />
 
       {/* Botón para enviar */}
-      <Button title="Agendar" onPress={handleSubmit} />
+      <Button
+        title={language === "es" ? "Agendar" : "Schedule"}
+        onPress={handleSubmit}
+        color={theme === "dark" ? "#FFD700" : "#007bff"}
+      />
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, padding: 10 },
-  input: { borderWidth: 1, borderRadius: 5, padding: 10, marginBottom: 10 },
-  pickerContainer: { borderWidth: 1, borderRadius: 5, marginBottom: 10 },
+const lightStyles = StyleSheet.create({
+  container: { flex: 1, padding: 10, backgroundColor: "#FFFFFF" },
+  input: { borderWidth: 1, borderRadius: 5, padding: 10, marginBottom: 10, backgroundColor: "#F5F5F5" },
+  pickerContainer: { borderWidth: 1, borderRadius: 5, marginBottom: 10, backgroundColor: "#FFFFFF" },
   picker: { height: 50 },
-  datePicker: { borderWidth: 1, padding: 10, borderRadius: 5, marginBottom: 10 },
+  datePicker: {
+    borderWidth: 1,
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 10,
+    backgroundColor: "#EAEAEA",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+});
+
+const darkStyles = StyleSheet.create({
+  container: { flex: 1, padding: 10, backgroundColor: "#1E1E1E" },
+  input: { borderWidth: 1, borderRadius: 5, padding: 10, marginBottom: 10, backgroundColor: "#333" },
+  pickerContainer: { borderWidth: 1, borderRadius: 5, marginBottom: 10, backgroundColor: "#333" },
+  picker: { height: 50, color: "#FFF" },
+  datePicker: {
+    borderWidth: 1,
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 10,
+    backgroundColor: "#555",
+    justifyContent: "center",
+    alignItems: "center",
+  },
 });

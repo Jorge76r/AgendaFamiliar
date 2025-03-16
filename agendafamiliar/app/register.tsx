@@ -10,16 +10,17 @@ import {
   Alert,
 } from "react-native";
 import CustomInput from "../components/CustomInput";
-import { useTheme } from "@/contexts/ThemeContext"; // Contexto de tema
-import { lightTheme, darkTheme } from "@/styles/themes"; // Temas definidos
-import { useLanguage } from "@/contexts/LanguageContext"; // Contexto de idioma
+import { useTheme } from "@/contexts/ThemeContext";
+import { lightTheme, darkTheme } from "@/styles/themes";
+import { useLanguage } from "@/contexts/LanguageContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface RegisterScreenProps {
   onRegisterComplete: () => void;
+  onNavigateToLogin: () => void;
 }
 
-export default function RegisterScreen({ onRegisterComplete }: RegisterScreenProps) {
+export default function RegisterScreen({ onRegisterComplete, onNavigateToLogin }: RegisterScreenProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -28,7 +29,7 @@ export default function RegisterScreen({ onRegisterComplete }: RegisterScreenPro
   const animationValue = useRef(new Animated.Value(0)).current;
   const { theme } = useTheme(); // Tema dinámico
   const { language } = useLanguage(); // Idioma dinámico
-  const themeStyles = theme === "dark" ? darkTheme : lightTheme; // Asignación del tema
+  const themeStyles = theme === "dark" ? darkTheme : lightTheme;
 
   const handlePressIn = () => {
     Animated.timing(animationValue, {
@@ -63,12 +64,11 @@ export default function RegisterScreen({ onRegisterComplete }: RegisterScreenPro
     try {
       const userData = { email, password };
       await AsyncStorage.setItem("registeredUser", JSON.stringify(userData));
-      console.log("Usuario registrado y guardado:", userData);
       Alert.alert(
         language === "es" ? "Registro Exitoso" : "Registration Successful",
         language === "es" ? "Tu cuenta ha sido creada." : "Your account has been created."
       );
-      onRegisterComplete(); // Navegar al login
+      onRegisterComplete();
     } catch (error) {
       console.error("Error al registrar:", error);
       setError(language === "es" ? "Error al registrar usuario" : "Error registering user");
@@ -79,7 +79,6 @@ export default function RegisterScreen({ onRegisterComplete }: RegisterScreenPro
 
   return (
     <View style={themeStyles.container}>
-      
       <CustomInput
         label={language === "es" ? "Correo Electrónico" : "Email"}
         value={email}
@@ -117,7 +116,14 @@ export default function RegisterScreen({ onRegisterComplete }: RegisterScreenPro
             {language === "es" ? "Registrar" : "Register"}
           </Text>
         </TouchableOpacity>
+      
       )}
+
+      <TouchableOpacity onPress={onNavigateToLogin} style={{ marginTop: 20 }}>
+        <Text style={themeStyles.linkText}>
+          {language === "es" ? "¿Ya tienes cuenta? Inicia Sesión" : "Already have an account? Login"}
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 }

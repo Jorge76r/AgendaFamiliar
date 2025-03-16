@@ -22,7 +22,7 @@ interface Task {
 export default function Index() {
   const [user, setUser] = useState<User | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [showRegister, setShowRegister] = useState(false);
+  const [showRegister, setShowRegister] = useState(false); // Controlar si se muestra RegisterScreen
 
   const handleLogin = (email: string, password: string) => {
     setUser({ email, password });
@@ -62,7 +62,7 @@ export default function Index() {
   }, []);
 
   const handleRegisterComplete = () => {
-    setShowRegister(false); // Vuelve al login después del registro
+    setShowRegister(false); // Regresa al Login después de completar el registro
   };
 
   return (
@@ -75,9 +75,15 @@ export default function Index() {
           onAddTask={handleAddTask}
         />
       ) : showRegister ? (
-        <RegisterScreen onRegisterComplete={handleRegisterComplete} />
+        <RegisterScreen
+          onRegisterComplete={handleRegisterComplete}
+          onNavigateToLogin={() => setShowRegister(false)} // Navega de vuelta al Login
+        />
       ) : (
-        <LoginScreen onLogin={handleLogin} onRegister={() => setShowRegister(true)} />
+        <LoginScreen
+          onLogin={handleLogin}
+          onRegister={() => setShowRegister(true)} // Navega al Register
+        />
       )}
     </View>
   );
