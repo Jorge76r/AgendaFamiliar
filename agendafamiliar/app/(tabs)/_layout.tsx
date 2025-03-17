@@ -5,34 +5,17 @@ import HomeScreen from "./home";
 import Agendar from "./agendar";
 import SettingsScreen from "./settings";
 
-interface Task {
-  id: string;
-  title: string;
-  description: string;
-  tipo: string;
-  fechaHora: string;
-  recurrencia: string;
-}
-
 interface LayoutProps {
   user: {
     email: string;
     password: string;
   };
   onLogout: () => void;
-  tasks: Task[]; // Recibir tasks desde Index
-  onAddTask: (
-    title: string,
-    description: string,
-    tipo: string,
-    fechaHora: string,
-    recurrencia: string
-  ) => void;
 }
 
 const Tab = createBottomTabNavigator();
 
-export default function Layout({ user, onLogout, tasks, onAddTask }: LayoutProps) {
+export default function Layout({ user, onLogout }: LayoutProps) {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -51,10 +34,10 @@ export default function Layout({ user, onLogout, tasks, onAddTask }: LayoutProps
       })}
     >
       <Tab.Screen name="Home" options={{ headerTitle: "Inicio" }}>
-        {() => <HomeScreen user={user} onLogout={onLogout} tasks={tasks} />}
+        {() => <HomeScreen user={user} onLogout={onLogout} theme="light" />}
       </Tab.Screen>
       <Tab.Screen name="Agendar" options={{ headerTitle: "Agendar" }}>
-        {() => <Agendar onAddTask={onAddTask} />}
+        {() => <Agendar />}
       </Tab.Screen>
       <Tab.Screen name="Settings" component={SettingsScreen} options={{ headerTitle: "Ajustes" }} />
     </Tab.Navigator>

@@ -1,45 +1,35 @@
 import React, { useState } from "react";
-import {
-  View,
-  TextInput,
-  Button,
-  StyleSheet,
-  Alert,
-  TouchableOpacity,
-  Text,
-} from "react-native";
+import {View, TextInput, TouchableOpacity, Alert, Text, StyleSheet} from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { useTheme } from "@/contexts/ThemeContext";
+import { useDispatch } from "react-redux";
+import { lightTheme, darkTheme } from "@/styles/themes"; // Temas globales
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useTheme } from "@/contexts/ThemeContext";
+import { addTask } from "../../store/slices/agendarSlice";
 
-interface AgendarProps {
-  onAddTask: (
-    title: string,
-    description: string,
-    tipo: string,
-    fechaHora: string,
-    recurrencia: string
-  ) => void;
-}
-
-export default function Agendar({ onAddTask }: AgendarProps) {
+export default function Agendar() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [tipo, setTipo] = useState<"Medicamento" | "Cita Médica" | "Otros">("Medicamento");
+  const [tipo, setTipo] = useState<"Medicamento" | "Cita Médica" | "Otros">(
+    "Medicamento"
+  );
   const [fechaHora, setFechaHora] = useState("");
+  const [recurrencia, setRecurrencia] = useState<
+    "Un solo día" | "Diario" | "Semanal" | "Mensual"
+  >("Un solo día");
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-  const [recurrencia, setRecurrencia] = useState<"Un solo día" | "Diario" | "Semanal" | "Mensual">("Un solo día");
 
-  const { theme } = useTheme(); // Acceso al tema dinámico
-  const { language } = useLanguage(); // Acceso al idioma dinámico
-  const styles = theme === "dark" ? darkStyles : lightStyles;
+  const dispatch = useDispatch();
+  const { language } = useLanguage(); // Idioma global
+  const { theme } = useTheme(); // Tema global
+  const styles = theme === "dark" ? darkStyles : lightStyles; // Estilos dinámicos basados en el tema
 
   const showDatePicker = () => setDatePickerVisibility(true);
   const hideDatePicker = () => setDatePickerVisibility(false);
 
   const handleDateConfirm = (date: Date) => {
-    setFechaHora(date.toISOString()); // Almacena la fecha en formato estándar ISO
+    setFechaHora(date.toISOString());
     hideDatePicker();
   };
 
@@ -47,24 +37,35 @@ export default function Agendar({ onAddTask }: AgendarProps) {
     if (!title || !description || !fechaHora) {
       Alert.alert(
         language === "es" ? "Error" : "Error",
-        language === "es" ? "Por favor, completa todos los campos." : "Please fill in all fields."
+        language === "es"
+          ? "Por favor, completa todos los campos."
+          : "Please fill in all fields."
       );
       return;
     }
 
-    // Llamar a la función `onAddTask` para agregar una nueva tarea
-    onAddTask(title, description, tipo, fechaHora, recurrencia);
+    dispatch(
+      addTask({
+        id: Date.now().toString(),
+        title,
+        description,
+        tipo,
+        fechaHora,
+        recurrencia,
+      })
+    );
 
-    // Restablecer los valores después de enviar
+    Alert.alert(
+      language === "es" ? "Éxito" : "Success",
+      language === "es"
+        ? "Tarea agendada correctamente."
+        : "Task successfully scheduled."
+    );
+
     setTitle("");
     setDescription("");
     setFechaHora("");
     setRecurrencia("Un solo día");
-
-    Alert.alert(
-      language === "es" ? "Éxito" : "Success",
-      language === "es" ? "Tarea agendada correctamente." : "Task successfully scheduled."
-    );
   };
 
   return (
@@ -86,30 +87,55 @@ export default function Agendar({ onAddTask }: AgendarProps) {
         multiline
       />
 
-      {/* Picker para el tipo de tarea */}
+      {/* Selector del tipo de tarea */}
       <View style={styles.pickerContainer}>
         <Picker
           selectedValue={tipo}
           onValueChange={(value) => setTipo(value)}
           style={styles.picker}
         >
-          <Picker.Item label={language === "es" ? "Medicamento" : "Medication"} value="Medicamento" />
-          <Picker.Item label={language === "es" ? "Cita Médica" : "Doctor's Appointment"} value="Cita Médica" />
-          <Picker.Item label={language === "es" ? "Otros" : "Others"} value="Otros" />
+          <Picker.Item
+            label={language === "es" ? "Medicamento" : "Medication"}
+            value="Medicamento"
+          />
+          <Picker.Item
+            label={
+              language === "es"
+                ? "Cita Médica"
+                : "Doctor's Appointment"
+            }
+            value="Cita Médica"
+          />
+          <Picker.Item
+            label={language === "es" ? "Otros" : "Others"}
+            value="Otros"
+          />
         </Picker>
       </View>
 
-      {/* Picker para la recurrencia */}
+      {/* Selector de recurrencia */}
       <View style={styles.pickerContainer}>
         <Picker
           selectedValue={recurrencia}
           onValueChange={(value) => setRecurrencia(value)}
           style={styles.picker}
         >
-          <Picker.Item label={language === "es" ? "Un solo día" : "One-time"} value="Un solo día" />
-          <Picker.Item label={language === "es" ? "Diario" : "Daily"} value="Diario" />
-          <Picker.Item label={language === "es" ? "Semanal" : "Weekly"} value="Semanal" />
-          <Picker.Item label={language === "es" ? "Mensual" : "Monthly"} value="Mensual" />
+          <Picker.Item
+            label={language === "es" ? "Un solo día" : "One-time"}
+            value="Un solo día"
+          />
+          <Picker.Item
+            label={language === "es" ? "Diario" : "Daily"}
+            value="Diario"
+          />
+          <Picker.Item
+            label={language === "es" ? "Semanalmente" : "Weekly"}
+            value="Semanal"
+          />
+          <Picker.Item
+            label={language === "es" ? "Mensualmente" : "Monthly"}
+            value="Mensual"
+          />
         </Picker>
       </View>
 
@@ -117,7 +143,9 @@ export default function Agendar({ onAddTask }: AgendarProps) {
       <TouchableOpacity onPress={showDatePicker} style={styles.datePicker}>
         <Text>
           {fechaHora
-            ? new Date(fechaHora).toLocaleString(language === "es" ? "es-ES" : "en-US")
+            ? new Date(fechaHora).toLocaleString(
+                language === "es" ? "es-ES" : "en-US"
+              )
             : language === "es"
             ? "Seleccionar Fecha y Hora"
             : "Select Date and Time"}
@@ -132,11 +160,11 @@ export default function Agendar({ onAddTask }: AgendarProps) {
       />
 
       {/* Botón para enviar */}
-      <Button
-        title={language === "es" ? "Agendar" : "Schedule"}
-        onPress={handleSubmit}
-        color={theme === "dark" ? "#FFD700" : "#007bff"}
-      />
+      <TouchableOpacity onPress={handleSubmit} style={styles.button}>
+        <Text style={styles.buttonText}>
+          {language === "es" ? "Agendar" : "Schedule"}
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -155,6 +183,14 @@ const lightStyles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  button: {
+    backgroundColor: "#007bff",
+    padding: 12,
+    borderRadius: 5,
+    alignItems: "center",
+    marginTop: 20,
+  },
+  buttonText: { color: "#FFFFFF", fontSize: 16, fontWeight: "bold" },
 });
 
 const darkStyles = StyleSheet.create({
@@ -171,4 +207,12 @@ const darkStyles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  button: {
+    backgroundColor: "#FFD700",
+    padding: 12,
+    borderRadius: 5,
+    alignItems: "center",
+    marginTop: 20,
+  },
+  buttonText: { color: "#000000", fontSize: 16, fontWeight: "bold" },
 });

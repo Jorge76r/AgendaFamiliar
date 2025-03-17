@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { View, StyleSheet } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Provider } from "react-redux"; // Importar Provider de Redux
+import { store } from "../store/store"; // Importar el store configurado
 import LoginScreen from "./login";
 import RegisterScreen from "./register";
 import Layout from "./(tabs)/_layout";
@@ -10,19 +11,9 @@ interface User {
   password: string;
 }
 
-interface Task {
-  id: string;
-  title: string;
-  description: string;
-  tipo: string;
-  fechaHora: string;
-  recurrencia: string;
-}
-
 export default function Index() {
   const [user, setUser] = useState<User | null>(null);
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [showRegister, setShowRegister] = useState(false); // Controlar si se muestra RegisterScreen
+  const [showRegister, setShowRegister] = useState(false);
 
   const handleLogin = (email: string, password: string) => {
     setUser({ email, password });
@@ -32,60 +23,28 @@ export default function Index() {
     setUser(null);
   };
 
-  const handleAddTask = (
-    title: string,
-    description: string,
-    tipo: string,
-    fechaHora: string,
-    recurrencia: string
-  ) => {
-    const newTask = {
-      id: (tasks.length + 1).toString(),
-      title,
-      description,
-      tipo,
-      fechaHora,
-      recurrencia,
-    };
-    setTasks((prevTasks) => [...prevTasks, newTask]);
-  };
-
-  useEffect(() => {
-    const fetchTasks = async () => {
-      const storedTasks = await AsyncStorage.getItem("tasks");
-      if (storedTasks) {
-        setTasks(JSON.parse(storedTasks));
-      }
-    };
-
-    fetchTasks();
-  }, []);
-
   const handleRegisterComplete = () => {
     setShowRegister(false); // Regresa al Login después de completar el registro
   };
 
   return (
-    <View style={styles.container}>
-      {user ? (
-        <Layout
-          user={user}
-          onLogout={handleLogout}
-          tasks={tasks}
-          onAddTask={handleAddTask}
-        />
-      ) : showRegister ? (
-        <RegisterScreen
-          onRegisterComplete={handleRegisterComplete}
-          onNavigateToLogin={() => setShowRegister(false)} // Navega de vuelta al Login
-        />
-      ) : (
-        <LoginScreen
-          onLogin={handleLogin}
-          onRegister={() => setShowRegister(true)} // Navega al Register
-        />
-      )}
-    </View>
+    <Provider store={store}>
+      <View style={styles.container}>
+        {user ? (
+          <Layout user={user} onLogout={handleLogout} />
+        ) : showRegister ? (
+          <RegisterScreen
+            onRegisterComplete={handleRegisterComplete}
+            onNavigateToLogin={() => setShowRegister(false)}
+          />
+        ) : (
+          <LoginScreen
+            onLogin={handleLogin}
+            onRegister={() => setShowRegister(true)}
+          />
+        )}
+      </View>
+    </Provider>
   );
 }
 

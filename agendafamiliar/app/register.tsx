@@ -6,14 +6,14 @@ import {
   StyleSheet,
   Animated,
   ActivityIndicator,
-  Image,
   Alert,
 } from "react-native";
 import CustomInput from "../components/CustomInput";
 import { useTheme } from "@/contexts/ThemeContext";
-import { lightTheme, darkTheme } from "@/styles/themes";
 import { useLanguage } from "@/contexts/LanguageContext";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { lightTheme, darkTheme } from "@/styles/themes";
+import { useDispatch } from "react-redux"; // Importar useDispatch para Redux
+import { registerUser } from "../store/slices/userSlice"; // Acción de Redux para registrar usuarios
 
 interface RegisterScreenProps {
   onRegisterComplete: () => void;
@@ -21,6 +21,7 @@ interface RegisterScreenProps {
 }
 
 export default function RegisterScreen({ onRegisterComplete, onNavigateToLogin }: RegisterScreenProps) {
+  const [name, setName] = useState(""); // Campo adicional para el nombre del usuario
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -29,6 +30,7 @@ export default function RegisterScreen({ onRegisterComplete, onNavigateToLogin }
   const animationValue = useRef(new Animated.Value(0)).current;
   const { theme } = useTheme(); // Tema dinámico
   const { language } = useLanguage(); // Idioma dinámico
+  const dispatch = useDispatch(); // Para disparar acciones de Redux
   const themeStyles = theme === "dark" ? darkTheme : lightTheme;
 
   const handlePressIn = () => {
@@ -52,8 +54,8 @@ export default function RegisterScreen({ onRegisterComplete, onNavigateToLogin }
     outputRange: ["0%", "100%"],
   });
 
-  const handleRegister = async () => {
-    if (!email || !password) {
+  const handleRegister = () => {
+    if (!name || !email || !password) {
       setError(language === "es" ? "Por favor, complete todos los campos" : "Please fill in all fields");
       return;
     }
@@ -62,13 +64,14 @@ export default function RegisterScreen({ onRegisterComplete, onNavigateToLogin }
     setLoading(true);
 
     try {
-      const userData = { email, password };
-      await AsyncStorage.setItem("registeredUser", JSON.stringify(userData));
+      // Llamada a Redux para guardar el usuario
+      dispatch(registerUser({ name, email, password }));
+
       Alert.alert(
         language === "es" ? "Registro Exitoso" : "Registration Successful",
         language === "es" ? "Tu cuenta ha sido creada." : "Your account has been created."
       );
-      onRegisterComplete();
+      onRegisterComplete(); // Navegar de regreso al login después del registro
     } catch (error) {
       console.error("Error al registrar:", error);
       setError(language === "es" ? "Error al registrar usuario" : "Error registering user");
@@ -79,6 +82,16 @@ export default function RegisterScreen({ onRegisterComplete, onNavigateToLogin }
 
   return (
     <View style={themeStyles.container}>
+      {/* Campo para el nombre del usuario */}
+      <CustomInput
+        label={language === "es" ? "Nombre" : "Name"}
+        value={name}
+        onChangeText={setName}
+        style={themeStyles.input}
+        labelStyle={themeStyles.text}
+      />
+
+      {/* Campo para el correo electrónico */}
       <CustomInput
         label={language === "es" ? "Correo Electrónico" : "Email"}
         value={email}
@@ -87,15 +100,17 @@ export default function RegisterScreen({ onRegisterComplete, onNavigateToLogin }
         style={themeStyles.input}
         labelStyle={themeStyles.text}
       />
+
+      {/* Campo para la contraseña */}
       <CustomInput
         label={language === "es" ? "Contraseña" : "Password"}
         value={password}
         onChangeText={setPassword}
-        keyboardType="default"
         secureTextEntry={true}
         style={themeStyles.input}
         labelStyle={themeStyles.text}
       />
+
       {error ? <Text style={themeStyles.error}>{error}</Text> : null}
       {loading ? (
         <ActivityIndicator size="large" color="#4A90E2" />
@@ -116,9 +131,9 @@ export default function RegisterScreen({ onRegisterComplete, onNavigateToLogin }
             {language === "es" ? "Registrar" : "Register"}
           </Text>
         </TouchableOpacity>
-      
       )}
 
+      {/* Botón para volver al login */}
       <TouchableOpacity onPress={onNavigateToLogin} style={{ marginTop: 20 }}>
         <Text style={themeStyles.linkText}>
           {language === "es" ? "¿Ya tienes cuenta? Inicia Sesión" : "Already have an account? Login"}

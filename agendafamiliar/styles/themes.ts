@@ -8,7 +8,7 @@ export const lightTheme = StyleSheet.create({
     justifyContent: "center",
   },
   content: {
-    width: '100%',
+    width: "100%",
   },
   text: {
     color: "#000000",
@@ -23,20 +23,20 @@ export const lightTheme = StyleSheet.create({
     textAlign: "center",
   },
   input: {
-    borderColor: "#000000", // Color del borde para el tema claro
-    color: "#000000", // Color del texto para el tema claro
-    width: '100%', // Ajuste para ocupar el ancho completo de la pantalla
+    borderColor: "#000000",
+    color: "#000000",
+    width: "100%",
     padding: 10,
     marginBottom: 10,
     borderWidth: 1,
     borderRadius: 5,
-    backgroundColor: "#FFFFFF", // Fondo blanco para los inputs
+    backgroundColor: "#FFFFFF",
   },
   inputText: {
-    color: "#000000", // Aseguramos que el color del texto en el input se mantenga negro
+    color: "#000000",
   },
   error: {
-    color: "red", // Color del texto de error para el tema claro
+    color: "red",
     fontSize: 16,
     fontWeight: "bold",
     marginBottom: 15,
@@ -49,14 +49,36 @@ export const lightTheme = StyleSheet.create({
     width: "80%",
     alignItems: "center",
     marginTop: 20,
-    alignSelf: "center", // Aseguramos que el botón esté centrado
+    alignSelf: "center",
   },
   buttonText: {
     color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "bold",
   },
+  // Nuevos estilos
+  taskCard: {
+    padding: 15,
+    backgroundColor: "#f8f9fa",
+    borderRadius: 8,
+    marginBottom: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  listContainer: {
+    flexGrow: 1,
+    paddingVertical: 20,
+  },
+  emptyListContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
 });
+
 
 export const darkTheme = StyleSheet.create({
   container: {
@@ -66,7 +88,7 @@ export const darkTheme = StyleSheet.create({
     justifyContent: "center",
   },
   content: {
-    width: '100%',
+    width: "100%",
   },
   text: {
     color: "#FFFFFF",
@@ -81,20 +103,20 @@ export const darkTheme = StyleSheet.create({
     textAlign: "center",
   },
   input: {
-    borderColor: "#FFFFFF", // Color del borde para el tema oscuro
-    color: "#000000", // Color del texto para el tema oscuro (asegurando que siempre sea negro)
-    width: '100%', // Ajuste para ocupar el ancho completo de la pantalla
+    borderColor: "#FFFFFF",
+    color: "#000000",
+    width: "100%",
     padding: 10,
     marginBottom: 10,
     borderWidth: 1,
     borderRadius: 5,
-    backgroundColor: "#FFFFFF", // Fondo blanco para los inputs
+    backgroundColor: "#FFFFFF",
   },
   inputText: {
-    color: "#000000", // Aseguramos que el color del texto en el input se mantenga negro
+    color: "#000000",
   },
   error: {
-    color: "red", // Color del texto de error para el tema oscuro
+    color: "red",
     fontSize: 16,
     fontWeight: "bold",
     marginBottom: 15,
@@ -107,11 +129,32 @@ export const darkTheme = StyleSheet.create({
     width: "80%",
     alignItems: "center",
     marginTop: 20,
-    alignSelf: "center", // Aseguramos que el botón esté centrado
+    alignSelf: "center",
   },
   buttonText: {
     color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "bold",
+  },
+  // Nuevos estilos
+  taskCard: {
+    padding: 15,
+    backgroundColor: "#1e1e1e",
+    borderRadius: 8,
+    marginBottom: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  listContainer: {
+    flexGrow: 1,
+    paddingVertical: 20,
+  },
+  emptyListContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

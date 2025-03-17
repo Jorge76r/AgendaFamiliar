@@ -1,223 +1,141 @@
 import React from "react";
-import { View, Text, FlatList, StyleSheet, Button, Image } from "react-native";
-import { useTheme } from "@/contexts/ThemeContext";
+import { View, Text, FlatList, Button, Image, StyleSheet, Dimensions } from "react-native";
+import { useSelector } from "react-redux";
+import { lightTheme, darkTheme } from "@/styles/themes";
+import { RootState } from "../../store/store";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-interface User {
-  email?: string; // Opcional para evitar errores
+function generateOccurrences(task: any) {
+  const occurrences = [];
+  const baseDate = new Date(task.fechaHora);
+
+  if (task.recurrencia === "Diario") {
+    for (let i = 0; i < 4; i++) {
+      const occurrence = new Date(baseDate);
+      occurrence.setDate(baseDate.getDate() + i);
+      occurrences.push({ ...task, fechaHora: occurrence.toISOString() });
+    }
+  } else if (task.recurrencia === "Semanal") {
+    for (let i = 0; i < 4; i++) {
+      const occurrence = new Date(baseDate);
+      occurrence.setDate(baseDate.getDate() + i * 7);
+      occurrences.push({ ...task, fechaHora: occurrence.toISOString() });
+    }
+  } else if (task.recurrencia === "Mensual") {
+    for (let i = 0; i < 4; i++) {
+      const occurrence = new Date(baseDate);
+      occurrence.setMonth(baseDate.getMonth() + i);
+      occurrences.push({ ...task, fechaHora: occurrence.toISOString() });
+    }
+  } else {
+    occurrences.push(task);
+  }
+
+  return occurrences;
 }
 
-interface Task {
-  id: string;
-  title: string;
-  description: string;
-  tipo: string;
-  fechaHora: string;
-  recurrencia: string;
-}
-
-interface HomeScreenProps {
-  user?: User; // `user` opcional
+export default function HomeScreen({
+  user,
+  onLogout,
+  theme,
+}: {
+  user?: { email?: string };
   onLogout: () => void;
-  tasks?: Task[]; // `tasks` opcional
-}
+  theme: "light" | "dark";
+}) {
+  const tasks = useSelector((state: RootState) => state.tasks);
+  const { language } = useLanguage();
+  const themeStyles = theme === "dark" ? darkTheme : lightTheme;
 
-export default function HomeScreen({ user = {}, onLogout, tasks = [] }: HomeScreenProps) {
-  const { theme } = useTheme(); // Acceso al contexto del tema
-  const { language } = useLanguage(); // Acceso al contexto del idioma
-  const styles = theme === "dark" ? darkStyles : lightStyles;
+  const expandedTasks = tasks.flatMap(generateOccurrences);
 
   return (
-    <View style={styles.container}>
-      {/* Imagen de bienvenida */}
-      <Image source={require("../../assets/images/home.png")} style={styles.perfil} />
-      
-      {/* Texto de bienvenida */}
-      <Text style={styles.welcomeText}>
-        {language === "es" ? "Bienvenido" : "Welcome"}, {user?.email || (language === "es" ? "invitado" : "guest")}
+    <View style={themeStyles.container}>
+      {/* Sección de bienvenida con la imagen */}
+      <Image
+        source={require("../../assets/images/home.png")}
+        style={styles.logo}
+      />
+      <Text style={themeStyles.title}>
+        {language === "es" ? "Bienvenido" : "Welcome"},{" "}
+        {user?.email || (language === "es" ? "invitado" : "guest")}
       </Text>
-
-      {/* Botón para cerrar sesión */}
       <Button
         title={language === "es" ? "Cerrar Sesión" : "Logout"}
         onPress={onLogout}
         color={theme === "dark" ? "#FF6B6B" : "#007bff"}
       />
 
-      {/* Título de la sección de tareas */}
-      <Text style={styles.sectionTitle}>
+      {/* Tareas programadas */}
+      <Text style={[themeStyles.text, styles.taskHeader]}>
         {language === "es" ? "Tareas Agendadas" : "Scheduled Tasks"}
       </Text>
-
-      {/* Lista de tareas o mensaje de lista vacía */}
       <FlatList
-        data={tasks} // Siempre será un array por defecto
-        keyExtractor={(item) => item.id}
+        data={expandedTasks}
+        keyExtractor={(item) => item.id + item.fechaHora}
         renderItem={({ item }) => (
           <View style={styles.taskCard}>
-            <Text style={styles.taskTitle}>
-              {item.title} ({item.tipo})
+            <Text style={[themeStyles.text, styles.taskTitle]}>
+              {item.title}
             </Text>
-            <Text style={styles.taskDescription}>{item.description}</Text>
-            <Text style={styles.taskDateTime}>
-              {language === "es" ? "Fecha y Hora" : "Date and Time"}: {item.fechaHora}
+            <Text style={themeStyles.text}>
+              {new Date(item.fechaHora).toLocaleString(
+                language === "es" ? "es-ES" : "en-US"
+              )}
             </Text>
-            <Text style={styles.taskRecurrencia}>
-              {language === "es" ? "Recurrencia" : "Recurrence"}: {item.recurrencia}
-            </Text>
+            <Text style={themeStyles.text}>{item.recurrencia}</Text>
           </View>
         )}
         ListEmptyComponent={
-          <Text style={styles.emptyText}>
-            {language === "es" ? "No hay tareas agendadas." : "No scheduled tasks."}
+          <Text style={themeStyles.text}>
+            {language === "es"
+              ? "No hay tareas programadas."
+              : "No scheduled tasks."}
           </Text>
         }
-        contentContainerStyle={tasks.length === 0 ? styles.emptyListContainer : styles.listContainer}
+        contentContainerStyle={styles.listContainer}
       />
     </View>
   );
 }
 
-const lightStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 10,
-    backgroundColor: "#F5F7FA",
-  },
-  perfil: {
-    width: 150,
-    height: 150,
+const screenWidth = Dimensions.get("window").width; // Ancho de la pantalla
+
+const styles = StyleSheet.create({
+  logo: {
+    width: 100,
+    height: 100,
     alignSelf: "center",
     marginBottom: 20,
   },
-  welcomeText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 20,
-    color: "#000",
-  },
-  sectionTitle: {
+  taskHeader: {
     fontSize: 20,
     fontWeight: "bold",
+    marginVertical: 10,
     textAlign: "center",
-    marginBottom: 10,
-    color: "#000",
   },
   listContainer: {
-    paddingBottom: 60,
-  },
-  emptyListContainer: {
     flexGrow: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  emptyText: {
-    fontSize: 16,
-    color: "gray",
-    textAlign: "center",
+    paddingVertical: 20,
   },
   taskCard: {
-    padding: 10,
-    backgroundColor: "white",
-    borderRadius: 5,
-    marginBottom: 10,
+    width: screenWidth * 0.9, // Ocupa el 90% del ancho de la pantalla
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    padding: 15,
+    marginBottom: 15,
+    alignSelf: "center", // Centrar horizontalmente
+    backgroundColor: "#F8F8F8",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
-    shadowRadius: 5,
+    shadowRadius: 4,
     elevation: 2,
   },
   taskTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 5,
-    color: "#333",
-  },
-  taskDescription: {
-    fontSize: 14,
-    marginBottom: 5,
-    color: "#333",
-  },
-  taskDateTime: {
-    fontSize: 12,
-    color: "gray",
-    marginBottom: 5,
-  },
-  taskRecurrencia: {
-    fontSize: 12,
-    color: "darkblue",
-  },
-});
-
-const darkStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 10,
-    backgroundColor: "#1E1E1E",
-  },
-  perfil: {
-    width: 150,
-    height: 150,
-    alignSelf: "center",
-    marginBottom: 20,
-  },
-  welcomeText: {
     fontSize: 18,
     fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 20,
-    color: "#FFF",
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 10,
-    color: "#FFF",
-  },
-  listContainer: {
-    paddingBottom: 60,
-  },
-  emptyListContainer: {
-    flexGrow: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  emptyText: {
-    fontSize: 16,
-    color: "gray",
-    textAlign: "center",
-  },
-  taskCard: {
-    padding: 10,
-    backgroundColor: "#2A2A2A",
-    borderRadius: 5,
-    marginBottom: 10,
-    shadowColor: "#FFF",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 2,
-  },
-  taskTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
     marginBottom: 5,
-    color: "#FFF",
-  },
-  taskDescription: {
-    fontSize: 14,
-    marginBottom: 5,
-    color: "#CCC",
-  },
-  taskDateTime: {
-    fontSize: 12,
-    color: "#AAA",
-    marginBottom: 5,
-  },
-  taskRecurrencia: {
-    fontSize: 12,
-    color: "#FFD700",
   },
 });

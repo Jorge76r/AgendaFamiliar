@@ -1,19 +1,21 @@
+import React from "react";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
-import { LanguageProvider } from "@/contexts/LanguageContext";
-import { TasksProvider } from "@/contexts/TasksContext"; 
+import { LanguageProvider } from "@/contexts/LanguageContext"; // Importar el proveedor de idiomas
+import { Provider } from "react-redux"; // Importar Redux Provider
+import { store } from "../store/store"; // Store de Redux
 import { Stack } from "expo-router";
 
 export default function RootLayout() {
-    return (
-        <ThemeProvider>
-            <LanguageProvider>
-                <AuthProvider>
-                    <TasksProvider>
-                        <Stack />
-                    </TasksProvider>
-                </AuthProvider>
-            </LanguageProvider>
-        </ThemeProvider>
-    );
+  return (
+    <Provider store={store}>
+      <ThemeProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <Stack />
+          </AuthProvider>
+        </LanguageProvider>
+      </ThemeProvider>
+    </Provider>
+  );
 }
