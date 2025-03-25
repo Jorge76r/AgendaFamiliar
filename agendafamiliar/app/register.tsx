@@ -8,12 +8,12 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
-import CustomInput from "../components/CustomInput";
-import { useTheme } from "@/contexts/ThemeContext";
-import { useLanguage } from "@/contexts/LanguageContext";
-import { lightTheme, darkTheme } from "@/styles/themes";
-import { useDispatch } from "react-redux"; // Importar useDispatch para Redux
-import { registerUser } from "../store/slices/userSlice"; // Acción de Redux para registrar usuarios
+import CustomInput from "../components/CustomInput"; // Campo de entrada personalizado
+import { useTheme } from "@/contexts/ThemeContext"; // Manejo de tema dinámico
+import { useLanguage } from "@/contexts/LanguageContext"; // Manejo de idioma
+import { lightTheme, darkTheme } from "@/styles/themes"; // Temas claro y oscuro
+import { useDispatch } from "react-redux"; // Redux para manejar el estado global
+import { registerUser } from "../store/slices/userSlice"; // Acción para registrar usuario
 
 interface RegisterScreenProps {
   onRegisterComplete: () => void;
@@ -21,17 +21,17 @@ interface RegisterScreenProps {
 }
 
 export default function RegisterScreen({ onRegisterComplete, onNavigateToLogin }: RegisterScreenProps) {
-  const [name, setName] = useState(""); // Campo adicional para el nombre del usuario
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [name, setName] = useState(""); // Nombre del usuario
+  const [email, setEmail] = useState(""); // Correo del usuario
+  const [password, setPassword] = useState(""); // Contraseña del usuario
+  const [loading, setLoading] = useState(false); // Indicador de carga
+  const [error, setError] = useState(""); // Manejo de errores en el formulario
 
   const animationValue = useRef(new Animated.Value(0)).current;
   const { theme } = useTheme(); // Tema dinámico
   const { language } = useLanguage(); // Idioma dinámico
   const dispatch = useDispatch(); // Para disparar acciones de Redux
-  const themeStyles = theme === "dark" ? darkTheme : lightTheme;
+  const themeStyles = theme === "dark" ? darkTheme : lightTheme; // Estilo dinámico según el tema
 
   const handlePressIn = () => {
     Animated.timing(animationValue, {
@@ -55,34 +55,60 @@ export default function RegisterScreen({ onRegisterComplete, onNavigateToLogin }
   });
 
   const handleRegister = () => {
+    // Validar que todos los campos estén completos
     if (!name || !email || !password) {
       setError(language === "es" ? "Por favor, complete todos los campos" : "Please fill in all fields");
       return;
     }
 
-    setError("");
-    setLoading(true);
+    // Validar formato del correo (opcional)
+    if (!email.includes("@")) {
+      setError(language === "es" ? "Correo electrónico inválido" : "Invalid email address");
+      return;
+    }
+
+    // Validar longitud mínima de la contraseña (opcional)
+    if (password.length < 6) {
+      setError(
+        language === "es"
+          ? "La contraseña debe tener al menos 6 caracteres"
+          : "Password must be at least 6 characters long"
+      );
+      return;
+    }
+
+    setError(""); // Limpiar errores previos
+    setLoading(true); // Mostrar indicador de carga
 
     try {
-      // Llamada a Redux para guardar el usuario
+      // Disparar la acción de registro en Redux
       dispatch(registerUser({ name, email, password }));
 
+      // Mostrar mensaje de éxito y navegar al login
       Alert.alert(
         language === "es" ? "Registro Exitoso" : "Registration Successful",
-        language === "es" ? "Tu cuenta ha sido creada." : "Your account has been created."
+        language === "es" ? "Tu cuenta ha sido creada." : "Your account has been created.",
+        [{ text: "OK", onPress: () => onNavigateToLogin() }]
       );
-      onRegisterComplete(); // Navegar de regreso al login después del registro
+
+      // Limpiar los campos después del registro
+      setName("");
+      setEmail("");
+      setPassword("");
+
+      // Ejecutar la función que maneja el registro completo
+      onRegisterComplete();
     } catch (error) {
       console.error("Error al registrar:", error);
       setError(language === "es" ? "Error al registrar usuario" : "Error registering user");
     }
 
-    setLoading(false);
+    setLoading(false); // Ocultar indicador de carga
   };
 
   return (
     <View style={themeStyles.container}>
-      {/* Campo para el nombre del usuario */}
+      {/* Campo para el nombre */}
       <CustomInput
         label={language === "es" ? "Nombre" : "Name"}
         value={name}
@@ -111,7 +137,10 @@ export default function RegisterScreen({ onRegisterComplete, onNavigateToLogin }
         labelStyle={themeStyles.text}
       />
 
+      {/* Mostrar errores */}
       {error ? <Text style={themeStyles.error}>{error}</Text> : null}
+
+      {/* Indicador de carga o botón de registro */}
       {loading ? (
         <ActivityIndicator size="large" color="#4A90E2" />
       ) : (
@@ -133,7 +162,7 @@ export default function RegisterScreen({ onRegisterComplete, onNavigateToLogin }
         </TouchableOpacity>
       )}
 
-      {/* Botón para volver al login */}
+      {/* Botón para navegar al login */}
       <TouchableOpacity onPress={onNavigateToLogin} style={{ marginTop: 20 }}>
         <Text style={themeStyles.linkText}>
           {language === "es" ? "¿Ya tienes cuenta? Inicia Sesión" : "Already have an account? Login"}

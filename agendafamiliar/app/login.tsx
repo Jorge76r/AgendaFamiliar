@@ -7,12 +7,15 @@ import {
   Animated,
   ActivityIndicator,
   Image,
+  Alert,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import CustomInput from "../components/CustomInput";
-import { useTheme } from "@/contexts/ThemeContext";
-import { lightTheme, darkTheme } from "@/styles/themes";
-import { useLanguage } from "@/contexts/LanguageContext";
+import CustomInput from "../components/CustomInput"; // Campo de entrada personalizado
+import { useTheme } from "@/contexts/ThemeContext"; // Manejo de tema dinámico
+import { lightTheme, darkTheme } from "@/styles/themes"; // Temas claro y oscuro
+import { useLanguage } from "@/contexts/LanguageContext"; // Manejo de idioma
+import { useDispatch, useSelector } from "react-redux"; // Importar Redux
+import { loginUser } from "../store/slices/userSlice"; // Acción para validar login
+import { RootState } from "../store/store"; // Tipos para acceder al estado global
 
 interface LoginScreenProps {
   onLogin: (email: string, password: string) => void;
@@ -20,15 +23,18 @@ interface LoginScreenProps {
 }
 
 export default function LoginScreen({ onLogin, onRegister }: LoginScreenProps) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [email, setEmail] = useState(""); // Campo para correo electrónico
+  const [password, setPassword] = useState(""); // Campo para contraseña
+  const [loading, setLoading] = useState(false); // Indicador de carga
+  const [error, setError] = useState(""); // Manejo de errores
 
   const animationValue = useRef(new Animated.Value(0)).current;
   const { theme } = useTheme(); // Tema dinámico
   const { language } = useLanguage(); // Idioma dinámico
-  const themeStyles = theme === "dark" ? darkTheme : lightTheme;
+  const themeStyles = theme === "dark" ? darkTheme : lightTheme; // Estilo según el tema
+
+  const dispatch = useDispatch(); // Para disparar acciones de Redux
+  const loggedInUser = useSelector((state: RootState) => state.user); // Acceder al estado del usuario
 
   const handlePressIn = () => {
     Animated.timing(animationValue, {
@@ -51,7 +57,7 @@ export default function LoginScreen({ onLogin, onRegister }: LoginScreenProps) {
     outputRange: ["0%", "100%"],
   });
 
-  const handleLogin = async () => {
+  const handleLogin = () => {
     if (!email || !password) {
       setError(language === "es" ? "Por favor, complete todos los campos" : "Please fill in all fields");
       return;
@@ -61,16 +67,19 @@ export default function LoginScreen({ onLogin, onRegister }: LoginScreenProps) {
     setLoading(true);
 
     try {
-      const storedUser = await AsyncStorage.getItem("registeredUser");
-      if (storedUser) {
-        const { email: storedEmail, password: storedPassword } = JSON.parse(storedUser);
-        if (email === storedEmail && password === storedPassword) {
-          onLogin(email, password);
-        } else {
-          setError(language === "es" ? "Credenciales inválidas" : "Invalid credentials");
-        }
+      // Disparar la acción para validar credenciales
+      dispatch(loginUser({ email, password }));
+
+      if (loggedInUser.email && loggedInUser.email === email) {
+        Alert.alert(
+          language === "es" ? "Inicio de sesión exitoso" : "Login Successful",
+          language === "es" ? `Bienvenido ${loggedInUser.name}` : `Welcome ${loggedInUser.name}`
+        );
+
+        // Llamar la función para manejar el login
+        onLogin(email, password);
       } else {
-        setError(language === "es" ? "No hay usuarios registrados" : "No registered users");
+        setError(language === "es" ? "Credenciales inválidas" : "Invalid credentials");
       }
     } catch (error) {
       console.error("Error al validar:", error);

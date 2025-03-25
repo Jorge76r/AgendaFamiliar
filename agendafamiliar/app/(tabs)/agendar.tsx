@@ -2,27 +2,23 @@ import React, { useState } from "react";
 import {View, TextInput, TouchableOpacity, Alert, Text, StyleSheet} from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { useDispatch } from "react-redux";
-import { lightTheme, darkTheme } from "@/styles/themes"; // Temas globales
+import { useDispatch } from "react-redux"; // importado de Redux
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTheme } from "@/contexts/ThemeContext";
-import { addTask } from "../../store/slices/agendarSlice";
+import { addTask } from "../../store/slices/agendarSlice"; //Acción de Redux para agendar
 
 export default function Agendar() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [tipo, setTipo] = useState<"Medicamento" | "Cita Médica" | "Otros">(
-    "Medicamento"
-  );
+  const [tipo, setTipo] = useState<"Medicamento" | "Cita Médica" | "Otros">("Medicamento");
   const [fechaHora, setFechaHora] = useState("");
   const [recurrencia, setRecurrencia] = useState<
-    "Un solo día" | "Diario" | "Semanal" | "Mensual"
-  >("Un solo día");
+"Un solo día" | "Diario" | "Semanal" | "Mensual">("Un solo día");
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
-  const dispatch = useDispatch();
+  const dispatch = useDispatch(); //Declaración del dispatch
   const { language } = useLanguage(); // Idioma global
-  const { theme } = useTheme(); // Tema global
+  const { theme } = useTheme(); 
   const styles = theme === "dark" ? darkStyles : lightStyles; // Estilos dinámicos basados en el tema
 
   const showDatePicker = () => setDatePickerVisibility(true);

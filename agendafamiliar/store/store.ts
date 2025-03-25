@@ -1,9 +1,13 @@
 import { configureStore } from "@reduxjs/toolkit";
-import tasksReducer from "./slices/agendarSlice";
+import agendarReducer from "./slices/agendarSlice"; // Importa correctamente el reducer de agendar
+import userReducer from "./slices/userSlice";
+import usersReducer from "./slices/usersSlice";
 
 export const store = configureStore({
   reducer: {
-    tasks: tasksReducer, // Registrar el reducer de tareas
+    agendar: agendarReducer, 
+    user: userReducer,
+    users: usersReducer,
   },
 });
 

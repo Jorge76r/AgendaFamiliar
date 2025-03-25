@@ -43,7 +43,7 @@ export default function HomeScreen({
   onLogout: () => void;
   theme: "light" | "dark";
 }) {
-  const tasks = useSelector((state: RootState) => state.tasks);
+  const tasks = useSelector((state: RootState) => state.agendar);
   const { language } = useLanguage();
   const themeStyles = theme === "dark" ? darkTheme : lightTheme;
 
