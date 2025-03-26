@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { useTheme } from "@/contexts/ThemeContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { darkTheme, lightTheme } from "@/styles/themes";
-import axios from "axios";
+import axios, { Axios } from "axios";
 import { setUsers } from "@/store/slices/usersSlice";
 import { BASE_URL } from "@/config/api";
 import { RootState } from "@/store/store";
