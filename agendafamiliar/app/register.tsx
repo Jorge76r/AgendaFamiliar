@@ -1,182 +1,131 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
-  StyleSheet,
-  Animated,
   ActivityIndicator,
   Alert,
 } from "react-native";
-import CustomInput from "../components/CustomInput"; // Campo de entrada personalizado
-import { useTheme } from "@/contexts/ThemeContext"; // Manejo de tema dinámico
-import { useLanguage } from "@/contexts/LanguageContext"; // Manejo de idioma
-import { lightTheme, darkTheme } from "@/styles/themes"; // Temas claro y oscuro
-import { useDispatch } from "react-redux"; // Redux para manejar el estado global
-import { registerUser } from "../store/slices/userSlice"; // Acción para registrar usuario
+import CustomInput from "../components/CustomInput"; // Entrada personalizada
+import axios from "axios";
+import { BASE_URL } from "@/config/api"; // Configuración de la API
 
 interface RegisterScreenProps {
   onRegisterComplete: () => void;
   onNavigateToLogin: () => void;
 }
 
-export default function RegisterScreen({ onRegisterComplete, onNavigateToLogin }: RegisterScreenProps) {
-  const [name, setName] = useState(""); // Nombre del usuario
-  const [email, setEmail] = useState(""); // Correo del usuario
-  const [password, setPassword] = useState(""); // Contraseña del usuario
-  const [loading, setLoading] = useState(false); // Indicador de carga
-  const [error, setError] = useState(""); // Manejo de errores en el formulario
+export default function RegisterScreen({
+  onRegisterComplete,
+  onNavigateToLogin,
+}: RegisterScreenProps) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const animationValue = useRef(new Animated.Value(0)).current;
-  const { theme } = useTheme(); // Tema dinámico
-  const { language } = useLanguage(); // Idioma dinámico
-  const dispatch = useDispatch(); // Para disparar acciones de Redux
-  const themeStyles = theme === "dark" ? darkTheme : lightTheme; // Estilo dinámico según el tema
+  const handleRegister = async () => {
+    console.log("BASE_URL actual:", BASE_URL); // Log para depuración
+    console.log("Intentando registrar usuario con los datos:", {
+      Nombre: name,
+      Email: email,
+      Clave: password,
+    });
 
-  const handlePressIn = () => {
-    Animated.timing(animationValue, {
-      toValue: 1,
-      duration: 300,
-      useNativeDriver: false,
-    }).start();
-  };
-
-  const handlePressOut = () => {
-    Animated.timing(animationValue, {
-      toValue: 0,
-      duration: 300,
-      useNativeDriver: false,
-    }).start();
-  };
-
-  const fillWidth = animationValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["0%", "100%"],
-  });
-
-  const handleRegister = () => {
-    // Validar que todos los campos estén completos
+    // Validaciones básicas de campos
     if (!name || !email || !password) {
-      setError(language === "es" ? "Por favor, complete todos los campos" : "Please fill in all fields");
+      setError("Por favor completa todos los campos");
       return;
     }
-
-    // Validar formato del correo (opcional)
     if (!email.includes("@")) {
-      setError(language === "es" ? "Correo electrónico inválido" : "Invalid email address");
+      setError("Correo electrónico inválido");
       return;
     }
-
-    // Validar longitud mínima de la contraseña (opcional)
     if (password.length < 6) {
-      setError(
-        language === "es"
-          ? "La contraseña debe tener al menos 6 caracteres"
-          : "Password must be at least 6 characters long"
-      );
+      setError("La contraseña debe tener al menos 6 caracteres");
       return;
     }
 
-    setError(""); // Limpiar errores previos
-    setLoading(true); // Mostrar indicador de carga
+    setError("");
+    setLoading(true);
 
     try {
-      // Disparar la acción de registro en Redux
-      dispatch(registerUser({ name, email, password }));
+      // Enviar solicitud al backend
+      const response = await axios.post(`${BASE_URL}/api/usuarios`, {
+        Nombre: name,
+        Email: email,
+        Clave: password,
+      });
 
-      // Mostrar mensaje de éxito y navegar al login
-      Alert.alert(
-        language === "es" ? "Registro Exitoso" : "Registration Successful",
-        language === "es" ? "Tu cuenta ha sido creada." : "Your account has been created.",
-        [{ text: "OK", onPress: () => onNavigateToLogin() }]
-      );
-
-      // Limpiar los campos después del registro
-      setName("");
-      setEmail("");
-      setPassword("");
-
-      // Ejecutar la función que maneja el registro completo
-      onRegisterComplete();
-    } catch (error) {
-      console.error("Error al registrar:", error);
-      setError(language === "es" ? "Error al registrar usuario" : "Error registering user");
+      // Validar respuesta
+      if (response.status === 200) {
+        Alert.alert(
+          "Registro exitoso",
+          "Tu cuenta ha sido creada exitosamente",
+          [{ text: "OK", onPress: onNavigateToLogin }]
+        );
+        console.log("Usuario registrado correctamente:", response.data);
+        setName("");
+        setEmail("");
+        setPassword("");
+        onRegisterComplete();
+      }
+    } catch (error: any) {
+      console.error("Error al registrar usuario:", error.response?.data || error.message);
+      setError(`Error al registrar usuario. Intenta nuevamente. ${BASE_URL}` );
     }
 
-    setLoading(false); // Ocultar indicador de carga
+    setLoading(false);
   };
-
+  
   return (
-    <View style={themeStyles.container}>
+    <View style={{ flex: 1, padding: 16 }}>
       {/* Campo para el nombre */}
       <CustomInput
-        label={language === "es" ? "Nombre" : "Name"}
+        label="Nombre"
         value={name}
         onChangeText={setName}
-        style={themeStyles.input}
-        labelStyle={themeStyles.text}
       />
-
-      {/* Campo para el correo electrónico */}
+      {/* Campo para el correo */}
       <CustomInput
-        label={language === "es" ? "Correo Electrónico" : "Email"}
+        label="Correo Electrónico"
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
-        style={themeStyles.input}
-        labelStyle={themeStyles.text}
       />
-
       {/* Campo para la contraseña */}
       <CustomInput
-        label={language === "es" ? "Contraseña" : "Password"}
+        label="Contraseña"
         value={password}
         onChangeText={setPassword}
         secureTextEntry={true}
-        style={themeStyles.input}
-        labelStyle={themeStyles.text}
       />
-
-      {/* Mostrar errores */}
-      {error ? <Text style={themeStyles.error}>{error}</Text> : null}
-
-      {/* Indicador de carga o botón de registro */}
+      {/* Mostrar mensaje de error si existe */}
+      {error ? <Text style={{ color: "red" }}>{error}</Text> : null}
+      {/* Indicador de carga o botón */}
       {loading ? (
         <ActivityIndicator size="large" color="#4A90E2" />
       ) : (
         <TouchableOpacity
-          style={themeStyles.button}
-          onPressIn={handlePressIn}
-          onPressOut={handlePressOut}
+          style={{
+            backgroundColor: "#4A90E2",
+            padding: 12,
+            alignItems: "center",
+            borderRadius: 8,
+          }}
           onPress={handleRegister}
         >
-          <Animated.View
-            style={[
-              StyleSheet.absoluteFill,
-              { backgroundColor: "#4A90E2", width: fillWidth, borderRadius: 10 },
-            ]}
-          />
-          <Text style={[themeStyles.buttonText, { zIndex: 1 }]}>
-            {language === "es" ? "Registrar" : "Register"}
-          </Text>
+          <Text style={{ color: "#FFF", fontSize: 16 }}>Registrar</Text>
         </TouchableOpacity>
       )}
-
-      {/* Botón para navegar al login */}
-      <TouchableOpacity onPress={onNavigateToLogin} style={{ marginTop: 20 }}>
-        <Text style={themeStyles.linkText}>
-          {language === "es" ? "¿Ya tienes cuenta? Inicia Sesión" : "Already have an account? Login"}
-        </Text>
+      {/* Navegar a Login */}
+      <TouchableOpacity
+        onPress={onNavigateToLogin}
+        style={{ marginTop: 16, alignItems: "center" }}
+      >
+        <Text style={{ color: "#4A90E2" }}>¿Ya tienes cuenta? Inicia sesión</Text>
       </TouchableOpacity>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  logo: {
-    width: 200,
-    height: 200,
-    alignSelf: "center",
-    marginBottom: 20,
-  },
-});

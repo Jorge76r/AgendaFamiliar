@@ -1,5 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage"; // Almacenamiento seguro para React Native
+import React, { createContext, useContext, useState } from "react";
 
 // Tipo de usuario
 type User = { email: string } | null;
@@ -8,7 +7,7 @@ type User = { email: string } | null;
 const AuthContext = createContext<{
   user: User;
   isAllowed: boolean;
-  login: (email: string, token: string) => void;
+  login: (email: string) => void; // Solo requiere email
   logout: () => void;
 } | null>(null);
 
@@ -21,57 +20,20 @@ export const useAuth = () => {
 
 // Proveedor del contexto de autenticación
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User>(null);
-  const [isAllowed, setIsAllowed] = useState<boolean>(false);
+  const [user, setUser] = useState<User>(null); // Estado para el usuario
+  const [isAllowed, setIsAllowed] = useState<boolean>(false); // Controla si el usuario está autenticado
 
-  // Método para iniciar sesión y guardar el token
-  const login = async (email: string, token: string) => {
-    try {
-      setUser({ email });
-      setIsAllowed(true);
-      await AsyncStorage.setItem("authToken", token); // Guarda el token
-    } catch (error) {
-      console.error("Error guardando el token:", error);
-    }
+  // Método para iniciar sesión
+  const login = (email: string) => {
+    setUser({ email });
+    setIsAllowed(true);
   };
 
-  // Método para cerrar sesión y limpiar los datos almacenados
-  const logout = async () => {
-    try {
-      setUser(null);
-      setIsAllowed(false);
-      await AsyncStorage.removeItem("authToken"); // Elimina el token
-    } catch (error) {
-      console.error("Error eliminando el token:", error);
-    }
+  // Método para cerrar sesión
+  const logout = () => {
+    setUser(null);
+    setIsAllowed(false);
   };
-
-  // Validar automáticamente el token al cargar la app
-  useEffect(() => {
-    const validateToken = async () => {
-      try {
-        const token = await AsyncStorage.getItem("authToken"); // Recupera el token
-        if (token) {
-          const response = await fetch("http://192.168.1.48:3000/protected", {
-            headers: { Authorization: `Bearer ${token}` },
-        });
-
-          if (response.ok) {
-            const data = await response.json();
-            setUser(data.user);
-            setIsAllowed(true);
-          } else {
-            logout(); // Token inválido o expirado
-          }
-        }
-      } catch (error) {
-        console.error("Error validando el token:", error);
-        logout();
-      }
-    };
-
-    validateToken();
-  }, []);
 
   return (
     <AuthContext.Provider value={{ user, isAllowed, login, logout }}>

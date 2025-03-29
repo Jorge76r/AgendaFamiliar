@@ -1,10 +1,13 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, FlatList, Button, Image, StyleSheet, Dimensions } from "react-native";
 import { useSelector } from "react-redux";
+import axios from "axios"; // Para solicitudes al backend
 import { lightTheme, darkTheme } from "@/styles/themes";
 import { RootState } from "../../store/store";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { BASE_URL } from "@/config/api"; // URL base del backend
 
+// Función para generar recurrencias de tareas
 function generateOccurrences(task: any) {
   const occurrences = [];
   const baseDate = new Date(task.fechaHora);
@@ -43,19 +46,32 @@ export default function HomeScreen({
   onLogout: () => void;
   theme: "light" | "dark";
 }) {
-  const tasks = useSelector((state: RootState) => state.agendar);
+  const localTasks = useSelector((state: RootState) => state.agendar); // Tareas locales del store Redux
+  const [dbTasks, setDbTasks] = useState([]); // Tareas obtenidas desde la base de datos
   const { language } = useLanguage();
   const themeStyles = theme === "dark" ? darkTheme : lightTheme;
 
-  const expandedTasks = tasks.flatMap(generateOccurrences);
+  const expandedTasks = [
+    ...localTasks.flatMap((task) => generateOccurrences(task)),
+    ...dbTasks.flatMap((task) => generateOccurrences(task)),
+  ];
+
+  useEffect(() => {
+    const fetchTasksFromDb = async () => {
+      try {
+        const response = await axios.get(`${BASE_URL}/api/agendar`);
+        setDbTasks(response.data || []); // Asegurarse de que sea un array válido
+      } catch (error: any) {
+        console.error("Error al obtener tareas desde la base de datos:", error.message);
+      }
+    };
+
+    fetchTasksFromDb();
+  }, [localTasks]); // Escucha cambios en localTasks
 
   return (
     <View style={themeStyles.container}>
-      {/* Sección de bienvenida con la imagen */}
-      <Image
-        source={require("../../assets/images/home.png")}
-        style={styles.logo}
-      />
+      <Image source={require("../../assets/images/home.png")} style={styles.logo} />
       <Text style={themeStyles.title}>
         {language === "es" ? "Bienvenido" : "Welcome"},{" "}
         {user?.email || (language === "es" ? "invitado" : "guest")}
@@ -65,41 +81,49 @@ export default function HomeScreen({
         onPress={onLogout}
         color={theme === "dark" ? "#FF6B6B" : "#007bff"}
       />
-
-      {/* Tareas programadas */}
       <Text style={[themeStyles.text, styles.taskHeader]}>
         {language === "es" ? "Tareas Agendadas" : "Scheduled Tasks"}
       </Text>
       <FlatList
-        data={expandedTasks}
-        keyExtractor={(item) => item.id + item.fechaHora}
-        renderItem={({ item }) => (
-          <View style={styles.taskCard}>
-            <Text style={[themeStyles.text, styles.taskTitle]}>
-              {item.title}
-            </Text>
-            <Text style={themeStyles.text}>
-              {new Date(item.fechaHora).toLocaleString(
-                language === "es" ? "es-ES" : "en-US"
-              )}
-            </Text>
-            <Text style={themeStyles.text}>{item.recurrencia}</Text>
-          </View>
-        )}
-        ListEmptyComponent={
-          <Text style={themeStyles.text}>
-            {language === "es"
-              ? "No hay tareas programadas."
-              : "No scheduled tasks."}
-          </Text>
-        }
-        contentContainerStyle={styles.listContainer}
-      />
+  data={expandedTasks}
+  keyExtractor={(item, index) => {
+    // Verificar si el ID es único
+    const uniqueKey = item.id || `${item.title}-${index}`;
+    console.log("Generated key:", uniqueKey); // Log para depuración
+    return uniqueKey;
+  }}
+  renderItem={({ item }) => (
+    <View style={styles.taskCard}>
+      <Text style={[themeStyles.text, styles.taskTitle]}>
+        {item.title || (language === "es" ? "Sin título" : "Untitled")}
+      </Text>
+      <Text style={themeStyles.text}>
+        {item.fechaHora
+          ? new Date(item.fechaHora).toLocaleString(
+              language === "es" ? "es-ES" : "en-US"
+            )
+          : language === "es"
+          ? "Fecha no válida"
+          : "Invalid date"}
+      </Text>
+      <Text style={themeStyles.text}>
+        {item.recurrencia || (language === "es" ? "Sin recurrencia" : "No recurrence")}
+      </Text>
+    </View>
+  )}
+  ListEmptyComponent={
+    <Text style={themeStyles.text}>
+      {language === "es"
+        ? "No hay tareas programadas."
+        : "No scheduled tasks."}
+    </Text>
+  }
+/>
     </View>
   );
 }
 
-const screenWidth = Dimensions.get("window").width; // Ancho de la pantalla
+const screenWidth = Dimensions.get("window").width;
 
 const styles = StyleSheet.create({
   logo: {
@@ -119,13 +143,13 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
   },
   taskCard: {
-    width: screenWidth * 0.9, // Ocupa el 90% del ancho de la pantalla
+    width: screenWidth * 0.9,
     borderWidth: 1,
     borderColor: "#ddd",
     borderRadius: 8,
     padding: 15,
     marginBottom: 15,
-    alignSelf: "center", // Centrar horizontalmente
+    alignSelf: "center",
     backgroundColor: "#F8F8F8",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },

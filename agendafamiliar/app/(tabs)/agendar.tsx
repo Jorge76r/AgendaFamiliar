@@ -1,175 +1,172 @@
 import React, { useState } from "react";
-import {View, TextInput, TouchableOpacity, Alert, Text, StyleSheet} from "react-native";
+import {
+  View,
+  TextInput,
+  Alert,
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+} from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { useDispatch } from "react-redux"; // importado de Redux
-import { useLanguage } from "@/contexts/LanguageContext";
-import { useTheme } from "@/contexts/ThemeContext";
-import { addTask } from "../../store/slices/agendarSlice"; //Acción de Redux para agendar
+import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
+import axios from "axios";
+import { BASE_URL } from "@/config/api";
 
-export default function Agendar() {
+interface AgendarProps {
+  onAddTask: (task: any) => void;
+}
+
+export default function Agendar({ onAddTask }: AgendarProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [tipo, setTipo] = useState<"Medicamento" | "Cita Médica" | "Otros">("Medicamento");
-  const [fechaHora, setFechaHora] = useState("");
-  const [recurrencia, setRecurrencia] = useState<
-"Un solo día" | "Diario" | "Semanal" | "Mensual">("Un solo día");
-  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [recurrencia, setRecurrencia] = useState<"Un solo día" | "Diario" | "Semanal" | "Mensual">(
+    "Un solo día"
+  );
+  const [fechaHora, setFechaHora] = useState<Date | null>(null); // Fecha y hora seleccionadas
+  const [tempDate, setTempDate] = useState<Date>(new Date()); // Fecha temporal seleccionada
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const dispatch = useDispatch(); //Declaración del dispatch
-  const { language } = useLanguage(); // Idioma global
-  const { theme } = useTheme(); 
-  const styles = theme === "dark" ? darkStyles : lightStyles; // Estilos dinámicos basados en el tema
-
-  const showDatePicker = () => setDatePickerVisibility(true);
-  const hideDatePicker = () => setDatePickerVisibility(false);
-
-  const handleDateConfirm = (date: Date) => {
-    setFechaHora(date.toISOString());
-    hideDatePicker();
+  // Mostrar selector de fecha
+  const showDatePicker = () => {
+    DateTimePickerAndroid.open({
+      value: tempDate,
+      onChange: (_, selectedDate) => {
+        if (selectedDate) {
+          setTempDate(selectedDate);
+          showTimePicker(); // Después de seleccionar la fecha, mostrar la hora
+        }
+      },
+      mode: "date",
+    });
   };
 
-  const handleSubmit = () => {
+  // Mostrar selector de hora
+  const showTimePicker = () => {
+    DateTimePickerAndroid.open({
+      value: tempDate,
+      onChange: (_, selectedTime) => {
+        if (selectedTime) {
+          const combinedDate = new Date(tempDate);
+          combinedDate.setHours(selectedTime.getHours());
+          combinedDate.setMinutes(selectedTime.getMinutes());
+          setFechaHora(combinedDate);
+        }
+      },
+      mode: "time",
+    });
+  };
+
+  const handleSubmit = async () => {
     if (!title || !description || !fechaHora) {
-      Alert.alert(
-        language === "es" ? "Error" : "Error",
-        language === "es"
-          ? "Por favor, completa todos los campos."
-          : "Please fill in all fields."
-      );
+      Alert.alert("Error", "Por favor, completa todos los campos.");
       return;
     }
 
-    dispatch(
-      addTask({
-        id: Date.now().toString(),
+    setError("");
+    setLoading(true);
+
+    try {
+      const formattedFechaHora = fechaHora.toISOString(); // Convertir a ISO para el backend
+
+      const response = await axios.post(`${BASE_URL}/api/agendar`, {
         title,
         description,
         tipo,
-        fechaHora,
+        fechaHora: formattedFechaHora,
         recurrencia,
-      })
-    );
+      });
 
-    Alert.alert(
-      language === "es" ? "Éxito" : "Success",
-      language === "es"
-        ? "Tarea agendada correctamente."
-        : "Task successfully scheduled."
-    );
+      if (response.status === 201 || response.status === 200) {
+        const newTask = response.data;
+        onAddTask(newTask); // Notificar a Home la nueva tarea
+        Alert.alert("Éxito", "Tarea agendada correctamente.");
+        setTitle("");
+        setDescription("");
+        setTipo("Medicamento");
+        setRecurrencia("Un solo día");
+        setFechaHora(null);
+      } else {
+        setError("No se pudo agendar la tarea.");
+      }
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error("Error al agendar tarea:", error.message);
+        setError(`No se pudo conectar con el servidor. Intenta nuevamente. ${BASE_URL}`);
+      } else {
+        console.error("Error desconocido:", error);
+        setError("Ha ocurrido un error inesperado.");
+      }
+    }
 
-    setTitle("");
-    setDescription("");
-    setFechaHora("");
-    setRecurrencia("Un solo día");
+    setLoading(false);
   };
 
   return (
     <View style={styles.container}>
-      {/* Campo para el título */}
       <TextInput
         style={styles.input}
-        placeholder={language === "es" ? "Título" : "Title"}
+        placeholder="Título"
         value={title}
         onChangeText={setTitle}
       />
-
-      {/* Campo para la descripción */}
       <TextInput
         style={styles.input}
-        placeholder={language === "es" ? "Descripción" : "Description"}
+        placeholder="Descripción"
         value={description}
         onChangeText={setDescription}
         multiline
       />
-
-      {/* Selector del tipo de tarea */}
       <View style={styles.pickerContainer}>
-        <Picker
-          selectedValue={tipo}
-          onValueChange={(value) => setTipo(value)}
-          style={styles.picker}
-        >
-          <Picker.Item
-            label={language === "es" ? "Medicamento" : "Medication"}
-            value="Medicamento"
-          />
-          <Picker.Item
-            label={
-              language === "es"
-                ? "Cita Médica"
-                : "Doctor's Appointment"
-            }
-            value="Cita Médica"
-          />
-          <Picker.Item
-            label={language === "es" ? "Otros" : "Others"}
-            value="Otros"
-          />
+        <Text style={styles.label}>Tipo de tarea:</Text>
+        <Picker selectedValue={tipo} onValueChange={setTipo} style={styles.picker}>
+          <Picker.Item label="Medicamento" value="Medicamento" />
+          <Picker.Item label="Cita Médica" value="Cita Médica" />
+          <Picker.Item label="Otros" value="Otros" />
         </Picker>
       </View>
-
-      {/* Selector de recurrencia */}
       <View style={styles.pickerContainer}>
-        <Picker
-          selectedValue={recurrencia}
-          onValueChange={(value) => setRecurrencia(value)}
-          style={styles.picker}
-        >
-          <Picker.Item
-            label={language === "es" ? "Un solo día" : "One-time"}
-            value="Un solo día"
-          />
-          <Picker.Item
-            label={language === "es" ? "Diario" : "Daily"}
-            value="Diario"
-          />
-          <Picker.Item
-            label={language === "es" ? "Semanalmente" : "Weekly"}
-            value="Semanal"
-          />
-          <Picker.Item
-            label={language === "es" ? "Mensualmente" : "Monthly"}
-            value="Mensual"
-          />
+        <Text style={styles.label}>Recurrencia:</Text>
+        <Picker selectedValue={recurrencia} onValueChange={setRecurrencia} style={styles.picker}>
+          <Picker.Item label="Un solo día" value="Un solo día" />
+          <Picker.Item label="Diario" value="Diario" />
+          <Picker.Item label="Semanal" value="Semanal" />
+          <Picker.Item label="Mensual" value="Mensual" />
         </Picker>
       </View>
-
-      {/* Botón para seleccionar fecha y hora */}
       <TouchableOpacity onPress={showDatePicker} style={styles.datePicker}>
         <Text>
           {fechaHora
-            ? new Date(fechaHora).toLocaleString(
-                language === "es" ? "es-ES" : "en-US"
-              )
-            : language === "es"
-            ? "Seleccionar Fecha y Hora"
-            : "Select Date and Time"}
+            ? fechaHora.toLocaleString("es-ES")
+            : "Seleccionar Fecha y Hora"}
         </Text>
       </TouchableOpacity>
-
-      <DateTimePickerModal
-        isVisible={isDatePickerVisible}
-        mode="datetime"
-        onConfirm={handleDateConfirm}
-        onCancel={hideDatePicker}
-      />
-
-      {/* Botón para enviar */}
-      <TouchableOpacity onPress={handleSubmit} style={styles.button}>
-        <Text style={styles.buttonText}>
-          {language === "es" ? "Agendar" : "Schedule"}
-        </Text>
-      </TouchableOpacity>
+      {error ? <Text style={{ color: "red", marginBottom: 10 }}>{error}</Text> : null}
+      {loading ? (
+        <ActivityIndicator size="large" color="#4A90E2" />
+      ) : (
+        <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+          <Text style={styles.buttonText}>Agendar</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
 
-const lightStyles = StyleSheet.create({
-  container: { flex: 1, padding: 10, backgroundColor: "#FFFFFF" },
-  input: { borderWidth: 1, borderRadius: 5, padding: 10, marginBottom: 10, backgroundColor: "#F5F5F5" },
-  pickerContainer: { borderWidth: 1, borderRadius: 5, marginBottom: 10, backgroundColor: "#FFFFFF" },
+const styles = StyleSheet.create({
+  container: { flex: 1, padding: 10 },
+  input: {
+    borderWidth: 1,
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 10,
+    backgroundColor: "#F5F5F5",
+  },
+  pickerContainer: { borderWidth: 1, borderRadius: 5, marginBottom: 10 },
   picker: { height: 50 },
+  label: { fontSize: 16, marginBottom: 5 },
   datePicker: {
     borderWidth: 1,
     padding: 10,
@@ -180,35 +177,10 @@ const lightStyles = StyleSheet.create({
     alignItems: "center",
   },
   button: {
-    backgroundColor: "#007bff",
+    backgroundColor: "#4A90E2",
     padding: 12,
-    borderRadius: 5,
-    alignItems: "center",
-    marginTop: 20,
-  },
-  buttonText: { color: "#FFFFFF", fontSize: 16, fontWeight: "bold" },
-});
-
-const darkStyles = StyleSheet.create({
-  container: { flex: 1, padding: 10, backgroundColor: "#1E1E1E" },
-  input: { borderWidth: 1, borderRadius: 5, padding: 10, marginBottom: 10, backgroundColor: "#333" },
-  pickerContainer: { borderWidth: 1, borderRadius: 5, marginBottom: 10, backgroundColor: "#333" },
-  picker: { height: 50, color: "#FFF" },
-  datePicker: {
-    borderWidth: 1,
-    padding: 10,
-    borderRadius: 5,
-    marginBottom: 10,
-    backgroundColor: "#555",
-    justifyContent: "center",
+    borderRadius: 8,
     alignItems: "center",
   },
-  button: {
-    backgroundColor: "#FFD700",
-    padding: 12,
-    borderRadius: 5,
-    alignItems: "center",
-    marginTop: 20,
-  },
-  buttonText: { color: "#000000", fontSize: 16, fontWeight: "bold" },
+  buttonText: { color: "#FFF", fontWeight: "bold" },
 });

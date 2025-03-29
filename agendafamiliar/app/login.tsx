@@ -9,13 +9,12 @@ import {
   Image,
   Alert,
 } from "react-native";
-import CustomInput from "../components/CustomInput"; // Campo de entrada personalizado
-import { useTheme } from "@/contexts/ThemeContext"; // Manejo de tema dinámico
-import { lightTheme, darkTheme } from "@/styles/themes"; // Temas claro y oscuro
-import { useLanguage } from "@/contexts/LanguageContext"; // Manejo de idioma
-import { useDispatch, useSelector } from "react-redux"; // Importar Redux
-import { loginUser } from "../store/slices/userSlice"; // Acción para validar login
-import { RootState } from "../store/store"; // Tipos para acceder al estado global
+import CustomInput from "../components/CustomInput";
+import axios from "axios";
+import { useTheme } from "@/contexts/ThemeContext";
+import { lightTheme, darkTheme } from "@/styles/themes";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { BASE_URL } from "@/config/api";
 
 interface LoginScreenProps {
   onLogin: (email: string, password: string) => void;
@@ -23,18 +22,15 @@ interface LoginScreenProps {
 }
 
 export default function LoginScreen({ onLogin, onRegister }: LoginScreenProps) {
-  const [email, setEmail] = useState(""); // Campo para correo electrónico
-  const [password, setPassword] = useState(""); // Campo para contraseña
-  const [loading, setLoading] = useState(false); // Indicador de carga
-  const [error, setError] = useState(""); // Manejo de errores
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const animationValue = useRef(new Animated.Value(0)).current;
-  const { theme } = useTheme(); // Tema dinámico
-  const { language } = useLanguage(); // Idioma dinámico
-  const themeStyles = theme === "dark" ? darkTheme : lightTheme; // Estilo según el tema
-
-  const dispatch = useDispatch(); // Para disparar acciones de Redux
-  const loggedInUser = useSelector((state: RootState) => state.user); // Acceder al estado del usuario
+  const { theme } = useTheme();
+  const { language } = useLanguage();
+  const themeStyles = theme === "dark" ? darkTheme : lightTheme;
 
   const handlePressIn = () => {
     Animated.timing(animationValue, {
@@ -57,7 +53,10 @@ export default function LoginScreen({ onLogin, onRegister }: LoginScreenProps) {
     outputRange: ["0%", "100%"],
   });
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
+    console.log("BASE_URL actual:", BASE_URL);
+    console.log("Intentando iniciar sesión con:", { email, password });
+
     if (!email || !password) {
       setError(language === "es" ? "Por favor, complete todos los campos" : "Please fill in all fields");
       return;
@@ -67,23 +66,25 @@ export default function LoginScreen({ onLogin, onRegister }: LoginScreenProps) {
     setLoading(true);
 
     try {
-      // Disparar la acción para validar credenciales
-      dispatch(loginUser({ email, password }));
+      const response = await axios.get(`${BASE_URL}/api/usuarios`);
+      console.log("Usuarios obtenidos:", response.data);
 
-      if (loggedInUser.email && loggedInUser.email === email) {
+      const usuario = response.data.find(
+        (user: any) => user.email === email && user.clave === password
+      );
+
+      if (usuario) {
         Alert.alert(
           language === "es" ? "Inicio de sesión exitoso" : "Login Successful",
-          language === "es" ? `Bienvenido ${loggedInUser.name}` : `Welcome ${loggedInUser.name}`
+          language === "es" ? `Bienvenido ${usuario.nombre}` : `Welcome ${usuario.nombre}`
         );
-
-        // Llamar la función para manejar el login
         onLogin(email, password);
       } else {
         setError(language === "es" ? "Credenciales inválidas" : "Invalid credentials");
       }
-    } catch (error) {
-      console.error("Error al validar:", error);
-      setError(language === "es" ? "Error en el inicio de sesión" : "Login error");
+    } catch (error: any) {
+      console.error("Error al intentar obtener usuarios:", error.message);
+      setError(language === "es" ? "Error al intentar iniciar sesión" : "Error trying to log in");
     }
 
     setLoading(false);
@@ -104,7 +105,6 @@ export default function LoginScreen({ onLogin, onRegister }: LoginScreenProps) {
         label={language === "es" ? "Contraseña" : "Password"}
         value={password}
         onChangeText={setPassword}
-        keyboardType="default"
         secureTextEntry={true}
         style={themeStyles.input}
         labelStyle={themeStyles.text}

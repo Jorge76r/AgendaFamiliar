@@ -1,12 +1,14 @@
 import React from "react";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { Provider } from "react-redux"; 
+import { store } from "../store/store"; 
 import { ThemeProvider } from "@/contexts/ThemeContext";
-import { LanguageProvider } from "@/contexts/LanguageContext"; // Importar el proveedor de idiomas
-import { Provider } from "react-redux"; // Importar Redux Provider
-import { store } from "../store/store"; // Store de Redux
+import { LanguageProvider } from "@/contexts/LanguageContext"; 
+import { AuthProvider } from "@/contexts/AuthContext";
 import { Stack } from "expo-router";
 
 export default function RootLayout() {
+  console.log("Renderizando RootLayout"); // Depuración del renderizado
+
   return (
     <Provider store={store}>
       <ThemeProvider>
